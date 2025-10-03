@@ -1,6 +1,7 @@
 package com.example.ticketway
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,9 +28,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        val apiKey = BuildConfig.API_SPORTS_KEY
+        Log.d("API_KEY_TEST", "Fetched API key: $apiKey")
     }
 }
-
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
