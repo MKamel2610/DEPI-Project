@@ -65,6 +65,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.adapters)
     val room_version = "2.8.1"
     val coroutines_version = "1.8.1"
     val retrofit_version = "2.11.0"
@@ -96,6 +97,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:$retrofit_version")
     implementation("com.squareup.moshi:moshi:$moshi_version")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:$moshi_version")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
 
     // --- Room ---
     implementation("androidx.room:room-runtime:$room_version")

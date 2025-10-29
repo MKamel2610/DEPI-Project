@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TicketWay</string>
+    <string name="title_activity_fixtures_screen">FixturesScreen</string>
 </resources>

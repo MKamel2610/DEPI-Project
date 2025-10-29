@@ -16,10 +16,10 @@
         android:theme="@style/Theme.TicketWay"
         tools:targetApi="31">
 
+        <!-- Main entry point -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.TicketWay">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,4 +28,5 @@
         </activity>
 
     </application>
+
 </manifest>
