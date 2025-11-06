@@ -17,7 +17,7 @@ fun FixturesScreen(viewModel: FixturesViewModel) {
 
     // Load fixtures on first composition
     LaunchedEffect(Unit) {
-        viewModel.loadFixtures("2025-10-28")
+        viewModel.loadFixtures("2025-11-01")
     }
 
     when {

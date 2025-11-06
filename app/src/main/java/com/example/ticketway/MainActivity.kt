@@ -10,9 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.example.ticketway.data.local.DatabaseProvider
-import com.example.ticketway.ui.screens.FixturesScreen
-import com.example.ticketway.ui.screens.StandingsScreen
-import com.example.ticketway.ui.screens.SquadScreen
+import com.example.ticketway.ui.screens.*
 import com.example.ticketway.ui.theme.TicketWayTheme
 import com.example.ticketway.ui.viewmodel.*
 
@@ -38,6 +36,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TicketWayTheme {
                 var selectedScreen by remember { mutableStateOf("fixtures") }
+                var showAuthSheet by remember { mutableStateOf(false) }
 
                 Scaffold(
                     topBar = {
@@ -80,6 +79,17 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         )
+                    },
+                    bottomBar = {
+                        // 🔥 Bottom button to open AuthScreen
+                        Button(
+                            onClick = { showAuthSheet = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text("Sign In / Sign Up")
+                        }
                     }
                 ) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
@@ -87,6 +97,14 @@ class MainActivity : ComponentActivity() {
                             "fixtures" -> FixturesScreen(viewModel = fixturesViewModel)
                             "standings" -> StandingsScreen(viewModel = standingsViewModel)
                             "squad" -> SquadScreen(viewModel = squadViewModel)
+                        }
+                    }
+
+                    if (showAuthSheet) {
+                        ModalBottomSheet(
+                            onDismissRequest = { showAuthSheet = false }
+                        ) {
+                            AuthScreen()
                         }
                     }
                 }
