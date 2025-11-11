@@ -105,6 +105,8 @@ dependencies {
     ksp("com.squareup.moshi:moshi-kotlin-codegen:$moshi_version")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
 
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // --- Room ---
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
