@@ -16,7 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
-import com.example.ticketway.ui.components.*
+import com.example.ticketway.ui.components.homescreen.BottomNavigationBar
+import com.example.ticketway.ui.components.homescreen.DateSelectorRow
+import com.example.ticketway.ui.components.homescreen.LeagueFilterRow
+import com.example.ticketway.ui.components.homescreen.LeagueMatchCard
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

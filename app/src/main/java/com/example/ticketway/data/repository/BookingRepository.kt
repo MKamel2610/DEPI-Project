@@ -1,25 +1,21 @@
 package com.example.ticketway.data.repository
 
-import com.example.ticketway.data.local.dao.BookingDao
-import com.example.ticketway.data.local.entities.BookingEntity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.ticketway.data.firebase.FirebaseRefs
+import com.example.ticketway.data.model.BookingItem
+import kotlinx.coroutines.tasks.await
 
-class BookingRepository(
-    private val bookingDao: BookingDao
-) {
+class BookingRepository {
 
-    suspend fun bookMatch(booking: BookingEntity) = withContext(Dispatchers.IO) {
-        bookingDao.insertBooking(booking)
-        // TODO: later, upload to Firebase
+    private val bookings = FirebaseRefs.db.collection("bookings")
+    private val auth = FirebaseRefs.auth
+
+    suspend fun saveBooking(booking: BookingItem) {
+        bookings.document(booking.bookingId).set(booking).await()
     }
 
-
-    suspend fun getBookingsByUser(userId: String): List<BookingEntity> = withContext(Dispatchers.IO) {
-        bookingDao.getBookingsByUser(userId)
-    }
-
-    suspend fun clearBookings() = withContext(Dispatchers.IO) {
-        bookingDao.clearAll()
+    suspend fun getUserBookings(): List<BookingItem> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        val snapshot = bookings.whereEqualTo("userId", uid).get().await()
+        return snapshot.toObjects(BookingItem::class.java)
     }
 }

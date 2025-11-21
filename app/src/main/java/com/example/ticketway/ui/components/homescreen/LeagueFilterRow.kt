@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.components
+package com.example.ticketway.ui.components.homescreen
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
