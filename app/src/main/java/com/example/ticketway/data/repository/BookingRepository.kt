@@ -6,16 +6,35 @@ import kotlinx.coroutines.tasks.await
 
 class BookingRepository {
 
+    val auth = FirebaseRefs.auth
     private val bookings = FirebaseRefs.db.collection("bookings")
-    private val auth = FirebaseRefs.auth
 
-    suspend fun saveBooking(booking: BookingItem) {
-        bookings.document(booking.bookingId).set(booking).await()
+    suspend fun saveBooking(booking: BookingItem): Boolean {
+        return try {
+            val uid = auth.currentUser?.uid ?: return false
+            val id = booking.bookingId.ifEmpty { bookings.document().id }
+
+            val safeBooking = booking.copy(
+                bookingId = id,
+                userId = uid
+            )
+
+            bookings.document(id).set(safeBooking).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     suspend fun getUserBookings(): List<BookingItem> {
-        val uid = auth.currentUser?.uid ?: return emptyList()
-        val snapshot = bookings.whereEqualTo("userId", uid).get().await()
-        return snapshot.toObjects(BookingItem::class.java)
+        return try {
+            val uid = auth.currentUser?.uid ?: return emptyList()
+            bookings.whereEqualTo("userId", uid)
+                .get()
+                .await()
+                .toObjects(BookingItem::class.java)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }

@@ -7,10 +7,10 @@ data class BookingItem(
     val awayTeam: String = "",
     val stadiumName: String = "",
     val matchDate: String = "",
-    val seatTier: String = "",
-    val seatCount: Int = 1,
-    val pricePerSeat: Double = 0.0,
-    val totalPrice: Double = 0.0,
+    val regularCount: Int = 0,
+    val premiumCount: Int = 0,
+    val vipCount: Int = 0,
+    val seatCount: Int = 0,
+    val totalPrice: Int = 0,
     val paymentStatus: String = "PENDING"
 )
-
