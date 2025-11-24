@@ -13,7 +13,7 @@ import com.example.ticketway.data.local.entities.StandingEntity
 
 @Database(
     entities = [FixtureEntity::class, SquadEntity::class, StandingEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

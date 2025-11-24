@@ -1,5 +1,8 @@
 package com.example.ticketway.ui.viewmodel
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ticketway.data.repository.FootballRepository
@@ -7,8 +10,8 @@ import com.example.ticketway.data.network.model.fixtures.FixtureResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
 
+@RequiresApi(Build.VERSION_CODES.O)
 class FixturesViewModel(
     private val repository: FootballRepository
 ) : ViewModel() {
@@ -22,19 +25,46 @@ class FixturesViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun loadFixtures(date: String) {
+    init {
+        // Load 3-day fixtures on initialization
+        loadThreeDayFixtures()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun loadThreeDayFixtures() {
+        Log.d("FixturesViewModel", "🔄 Loading 3-day fixtures")
+
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
+
             try {
-                val data = repository.getFixtures(date)
-                _fixtures.value = data
-                Log.d("FixturesViewModel", "Loaded ${data?.response?.size ?: 0} fixtures")
+                val data = repository.getThreeDayFixtures()
+
+                if (data != null) {
+                    _fixtures.value = data
+                    val count = data.response.size
+                    Log.d("FixturesViewModel", "✅ Loaded $count fixtures")
+
+                    // Log fixtures by league
+                    data.response.groupBy { it.league.name }.forEach { (league, matches) ->
+                        Log.d("FixturesViewModel", "   📊 $league: ${matches.size} matches")
+                    }
+                } else {
+                    _fixtures.value = FixtureResponse(emptyList())
+                    Log.w("FixturesViewModel", "No data returned")
+                }
             } catch (e: Exception) {
                 _error.value = e.message
-                Log.e("FixturesViewModel", "Error loading fixtures: ${e.message}")
+                _fixtures.value = FixtureResponse(emptyList())
+                Log.e("FixturesViewModel", "Error loading fixtures: ${e.message}", e)
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun refresh() {
+        loadThreeDayFixtures()
     }
 }

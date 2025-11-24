@@ -1,7 +1,7 @@
 package com.example.ticketway.data.model
 
 data class UserProfile(
-    val name: String = "",
     val email: String = "",
+    val name: String = "",
     val phone: String = ""
 )

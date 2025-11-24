@@ -122,4 +122,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
     implementation("com.google.firebase:firebase-firestore:26.0.2")
+
+    //implementation("androidx.compose.material3:material3:1.4.0")
+
 }

@@ -14,6 +14,12 @@ interface ApiService {
         @Query("date") date: String
     ): Response<FixtureResponse>
 
+    @GET("fixtures")
+    suspend fun getFixtures(
+        @Query("league") league: Int,
+        @Query("season") season: Int
+    ): Response<FixtureResponse>
+
     @GET("standings")
     suspend fun getStandings(
         @Query("league") leagueId: Int,
