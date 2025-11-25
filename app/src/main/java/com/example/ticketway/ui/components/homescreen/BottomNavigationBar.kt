@@ -1,12 +1,17 @@
 package com.example.ticketway.ui.components.homescreen
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+// Import ConfirmationNumber icon
+import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ticketway.ui.ui.theme.*
+
 
 @Composable
 fun BottomNavigationBar(
@@ -32,7 +37,8 @@ fun BottomNavigationBar(
         NavigationBarItem(
             selected = selectedTab == "My Tickets",
             onClick = { onTabSelected("My Tickets") },
-            icon = { Icon(Icons.Default.CheckCircle, contentDescription = "My Tickets") },
+            // CHANGED: Icon is now ConfirmationNumber
+            icon = { Icon(Icons.Default.ConfirmationNumber, contentDescription = "My Tickets") },
             label = { Text("My Tickets", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
@@ -41,35 +47,12 @@ fun BottomNavigationBar(
             )
         )
 
-//        NavigationBarItem(
-//            selected = selectedTab == "watch",
-//            onClick = { onTabSelected("watch") },
-//            icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Watch") },
-//            label = { Text("Watch", fontSize = 11.sp) },
-//            colors = NavigationBarItemDefaults.colors(
-//                selectedIconColor = PrimaryGreen,
-//                selectedTextColor = PrimaryGreen,
-//                indicatorColor = Color.Transparent
-//            )
-//        )
-
-//        NavigationBarItem(
-//            selected = selectedTab == "news",
-//            onClick = { onTabSelected("news") },
-//            icon = { Icon(Icons.Default.List, contentDescription = "News") },
-//            label = { Text("News", fontSize = 11.sp) },
-//            colors = NavigationBarItemDefaults.colors(
-//                selectedIconColor = PrimaryGreen,
-//                selectedTextColor = PrimaryGreen,
-//                indicatorColor = Color.Transparent
-//            )
-//        )
 
         NavigationBarItem(
             selected = selectedTab == "account",
             onClick = { onTabSelected("account") },
-            icon = { Icon(Icons.Default.Person, contentDescription = "Account") },
-            label = { Text("Account", fontSize = 11.sp) },
+            icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+            label = { Text("Profile", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
                 selectedTextColor = PrimaryGreen,

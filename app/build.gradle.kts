@@ -122,10 +122,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
     implementation("com.google.firebase:firebase-firestore:26.0.2")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
 
     //implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.navigation:navigation-compose:2.7.0")
+    implementation("androidx.navigation:navigation-compose:2.9.6")
 
-    implementation("androidx.compose.material3:material3:1.1.1")
-    implementation("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation("androidx.compose.material3:material3:1.4.0")
 }

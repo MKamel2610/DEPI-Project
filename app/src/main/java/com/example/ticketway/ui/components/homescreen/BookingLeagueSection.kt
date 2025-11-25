@@ -22,6 +22,8 @@ import coil.compose.AsyncImage
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.example.ticketway.ui.ui.theme.*
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

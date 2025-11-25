@@ -15,10 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
+import com.example.ticketway.ui.ui.theme.*
 
-val PrimaryGreen = Color(0xFF009688)
-val BorderGray = Color(0xFFE0E0E0)
-val DarkText = Color(0xFF212121)
+
 
 @Composable
 fun LeagueFilterRow(

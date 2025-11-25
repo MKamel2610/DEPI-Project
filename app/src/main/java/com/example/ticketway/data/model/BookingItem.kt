@@ -9,7 +9,6 @@ data class BookingItem(
     val matchDate: String = "",
     val regularCount: Int = 0,
     val premiumCount: Int = 0,
-    val vipCount: Int = 0,
     val seatCount: Int = 0,
     val totalPrice: Int = 0,
     val paymentStatus: String = "PENDING"

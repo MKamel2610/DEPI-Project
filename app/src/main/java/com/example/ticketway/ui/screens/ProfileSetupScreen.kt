@@ -21,8 +21,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ticketway.ui.components.PrimaryGreen
 import com.example.ticketway.ui.viewmodel.AuthViewModel
+import com.example.ticketway.ui.ui.theme.*
+
 
 @Composable
 fun ProfileSetupScreen(

@@ -19,12 +19,8 @@ import coil.compose.AsyncImage
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.example.ticketway.ui.ui.theme.*
 
-val PrimaryGreen = Color(0xFF009688)
-val LightGray = Color(0xFFF5F5F5)
-val DarkText = Color(0xFF212121)
-val MediumText = Color(0xFF424242)
-val LightText = Color(0xFF757575)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

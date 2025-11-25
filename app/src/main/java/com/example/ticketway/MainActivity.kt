@@ -15,17 +15,20 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.ticketway.data.local.DatabaseProvider
 import com.example.ticketway.ui.screens.AuthScreen
 import com.example.ticketway.ui.screens.BookingHomeScreen
-import com.example.ticketway.ui.screens.ProfileSetupScreen // New Import
+import com.example.ticketway.ui.screens.ProfileSetupScreen
+import com.example.ticketway.ui.screens.profile.ProfileScreen // NEW Import
 import com.example.ticketway.ui.theme.TicketWayTheme
+import com.example.ticketway.ui.user.UserViewModel // NEW Import
 import com.example.ticketway.ui.viewmodel.AuthViewModel
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
 import com.example.ticketway.ui.viewmodel.FixturesViewModelFactory
-import com.example.ticketway.ui.viewmodel.RegistrationStep // New Import
+import com.example.ticketway.ui.viewmodel.RegistrationStep
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var fixturesViewModel: FixturesViewModel
     private lateinit var authViewModel: AuthViewModel
+    private lateinit var userViewModel: UserViewModel // NEW: For ProfileScreen data
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,17 +37,18 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "onCreate called")
 
         // Initialize ViewModels
-        // Assuming DatabaseProvider and other necessary dependencies are available in your project context
         val db = DatabaseProvider.getDatabase(this)
         val fixturesFactory = FixturesViewModelFactory(db)
         fixturesViewModel = ViewModelProvider(this, fixturesFactory)[FixturesViewModel::class.java]
         authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        userViewModel = ViewModelProvider(this)[UserViewModel::class.java] // NEW: Initialize UserViewModel
 
         setContent {
             TicketWayTheme {
                 AppContent(
                     fixturesViewModel = fixturesViewModel,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    userViewModel = userViewModel // NEW: Pass UserViewModel
                 )
             }
         }
@@ -56,129 +60,124 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppContent(
     fixturesViewModel: FixturesViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    userViewModel: UserViewModel // NEW Parameter
 ) {
-    // Simple state: either show auth or show home
+    // Primary navigation states
     var showAuth by remember { mutableStateOf(true) }
     var showAuthModal by remember { mutableStateOf(false) }
-    var showProfileSetup by remember { mutableStateOf(false) } // NEW: State for the second registration step
+    var showProfileSetup by remember { mutableStateOf(false) }
+    var currentTab by remember { mutableStateOf("home") } // NEW: Tracks the selected tab
 
     val authState by authViewModel.authState.collectAsState()
-    val registrationState by authViewModel.registrationState.collectAsState() // NEW: Observe registration step
+    val registrationState by authViewModel.registrationState.collectAsState()
 
     // Initialize: check if user is already logged in.
     LaunchedEffect(Unit) {
-        Log.d("AppContent", "Initial check for logged-in user.")
         authViewModel.checkUser()
     }
 
     // Update when auth state changes (FINAL success/failure)
     LaunchedEffect(authState) {
-        Log.d("AppContent", "Auth state changed: $authState")
         if (authState == true) {
-            // User is fully authenticated and profile is complete
             showAuth = false
             showAuthModal = false
             showProfileSetup = false
+            userViewModel.loadUser() // Load profile data upon successful authentication
         } else if (authState == false) {
-            // User is explicitly logged out or failed login.
+            // User is explicitly logged out or failed login. Reset to show auth screen
+            showAuth = true
+            currentTab = "home" // Reset tab selection on logout
         }
     }
 
-    // NEW: Handle transition from AuthScreen to ProfileSetupScreen
+    // Handle transition from AuthScreen to ProfileSetupScreen
     LaunchedEffect(registrationState) {
         if (registrationState == RegistrationStep.AUTH_COMPLETE) {
-            showAuth = false // Hide Auth screen
-            showAuthModal = false // Hide Modal if it was showing
-            showProfileSetup = true // Show Profile setup screen
+            showAuth = false
+            showAuthModal = false
+            showProfileSetup = true
         }
     }
 
-    // Primary screen flow:
+    // --- Logout Functionality ---
+    val onLogout: () -> Unit = {
+        authViewModel.logout()
+        // authState = false in LaunchedEffect handles the reset
+    }
+
+    // --- Screen Logic ---
     if (showAuth) {
-        Log.d("AppContent", "Showing Auth Screen (Full screen)")
+        // Full-screen Auth flow (initial launch or after explicit logout)
         AuthScreen(
             viewModel = authViewModel,
-            onAuthSuccess = {
-                Log.d("AppContent", "onAuthSuccess called (Login)")
-                // authState handles showAuth = false
-            },
-            onRegistrationSuccess = {
-                Log.d("AppContent", "onRegistrationSuccess called -> Profile Setup")
-                // registrationState handles the navigation to Profile Setup
-            },
-            onSkip = {
-                Log.d("AppContent", "onSkip called - going to home")
-                showAuth = false
-            },
+            onAuthSuccess = { /* authState handles showAuth = false */ },
+            onRegistrationSuccess = { /* registrationState handles navigation to Profile Setup */ },
+            onSkip = { showAuth = false },
             showSkipButton = true
         )
-    } else if (showProfileSetup) { // NEW: Handle Profile Setup
-        Log.d("AppContent", "Showing Profile Setup Screen")
+    } else if (showProfileSetup) {
+        // Full-screen Profile Setup flow (after registration)
         ProfileSetupScreen(
             viewModel = authViewModel,
-            onSetupComplete = {
-                Log.d("AppContent", "Profile setup complete -> Home")
-                // authState handles showAuth = false and showProfileSetup = false
-            }
+            onSetupComplete = { /* authState handles navigation to Home */ }
         )
-    }
-    else {
-        // Show home screen
-        Log.d("AppContent", "Showing Home Screen")
-        BookingHomeScreen(
-            viewModel = fixturesViewModel,
-            onMatchClick = { fixture ->
-                Log.d("AppContent", "Match clicked: ${fixture.teams.home.name} vs ${fixture.teams.away.name}")
-
-                if (authState != true) {
-                    Log.d("AppContent", "User not logged in - showing auth modal")
-                    showAuthModal = true
-                } else {
-                    Log.d("AppContent", "User logged in - proceed to booking")
-                    // TODO: Go to booking screen
-                }
-            },
-            onMenuClick = {
-                Log.d("AppContent", "Menu clicked")
+    } else {
+        // Main Home Screen flow with Bottom Navigation
+        when (currentTab) {
+            "home", "My Tickets" -> {
+                // Show Home or My Tickets content (currently only showing BookingHomeScreen)
+                BookingHomeScreen(
+                    viewModel = fixturesViewModel,
+                    currentTab = currentTab, // Pass current tab to Home
+                    onTabSelected = { newTab ->
+                        currentTab = newTab
+                        // If user selects 'account', check auth status
+                        if (newTab == "account") {
+                            if (authState != true) {
+                                showAuthModal = true
+                                currentTab = "home" // Stay on home if auth modal is triggered
+                            }
+                        }
+                    },
+                    onMatchClick = { fixture ->
+                        if (authState != true) {
+                            showAuthModal = true
+                        } else {
+                            // TODO: Go to booking screen
+                        }
+                    }
+                )
             }
-        )
+            "account" -> {
+                // Show Profile Screen
+                ProfileScreen(
+                    viewModel = userViewModel,
+                    onBack = { currentTab = "home" }, // Return to home tab
+                    onLogout = onLogout
+                )
+            }
+        }
 
-        // Auth modal for booking (only visible over the Home screen)
+        // Auth modal (for booking or accessing profile when not logged in)
         if (showAuthModal) {
-            Log.d("AppContent", "Showing auth modal")
             ModalBottomSheet(
-                onDismissRequest = {
-                    Log.d("AppContent", "Auth modal dismissed")
-                    showAuthModal = false
-                }
+                onDismissRequest = { showAuthModal = false }
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
-                    Text(
-                        text = "Login Required",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
+                    Text(text = if (currentTab == "account") "Login Required" else "Booking Requires Login", style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Please login to book tickets",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Text(text = "Please login to continue", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 AuthScreen(
                     viewModel = authViewModel,
-                    onAuthSuccess = {
-                        Log.d("AppContent", "Modal auth success (Login)")
-                        showAuthModal = false
-                    },
-                    // Registration inside modal is blocked by showSkipButton = false,
-                    // so onRegistrationSuccess won't be called, but we include it for safety
+                    onAuthSuccess = { showAuthModal = false },
                     onRegistrationSuccess = {
-                        // If registration somehow happens here, this navigates to the main profile setup screen
                         showAuthModal = false
                         showProfileSetup = true
                     },
