@@ -12,6 +12,7 @@ class BookingRepository {
     suspend fun saveBooking(booking: BookingItem): Boolean {
         return try {
             val uid = auth.currentUser?.uid ?: return false
+            // Use the provided bookingId (usually a UUID generated in the ViewModel)
             val id = booking.bookingId.ifEmpty { bookings.document().id }
 
             val safeBooking = booking.copy(

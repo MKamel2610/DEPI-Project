@@ -104,7 +104,7 @@ dependencies {
     implementation("com.squareup.moshi:moshi:$moshi_version")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:$moshi_version")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
-
+    implementation("com.squareup.moshi:moshi-kotlin:$moshi_version")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // --- Room ---

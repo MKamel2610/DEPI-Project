@@ -1,6 +1,6 @@
 package com.example.ticketway.ui.screens.profile
 
-import androidx.compose.foundation.BorderStroke // NEW: Needed for button border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,11 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ticketway.data.model.UserProfile
 import com.example.ticketway.ui.user.UserViewModel
-// Import LightGray
 import com.example.ticketway.ui.ui.theme.PrimaryGreen
 import com.example.ticketway.ui.ui.theme.DarkText
 import com.example.ticketway.ui.ui.theme.LightText
-import com.example.ticketway.ui.ui.theme.LightGray // NEW: Import LightGray
+import com.example.ticketway.ui.ui.theme.LightGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +49,13 @@ fun ProfileScreen(
     var phone by remember { mutableStateOf("") }
 
     val focusManager = LocalFocusManager.current
+
+    // FIX 1: Explicitly ensure data loads every time the screen is accessed if data is missing.
+    LaunchedEffect(Unit) {
+        if (profileState == null) {
+            viewModel.loadUser()
+        }
+    }
 
     // Update local state when profile data loads or changes
     LaunchedEffect(profileState) {
@@ -71,14 +77,18 @@ fun ProfileScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = LightGray)
             )
         },
-        // FIXED: Use containerColor instead of Modifier.background
         containerColor = LightGray
     ) { padding ->
-        if (isLoading && profileState == null) {
+
+        // Check if we are currently loading AND have no data
+        val showLoading = isLoading && profileState == null
+
+        if (showLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = PrimaryGreen)
             }
         } else if (profileState != null) {
+            // --- MAIN CONTENT ---
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -214,6 +224,20 @@ fun ProfileScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
+            }
+        } else {
+            // FIX 2: Show an error/retry button if loading finished but profile is still null (blank screen prevention)
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = errorMessage ?: "Could not load profile data.",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Button(onClick = { viewModel.loadUser() }) {
+                        Text("Retry")
+                    }
+                }
             }
         }
     }

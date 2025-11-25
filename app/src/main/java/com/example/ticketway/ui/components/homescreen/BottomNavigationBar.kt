@@ -49,8 +49,8 @@ fun BottomNavigationBar(
 
 
         NavigationBarItem(
-            selected = selectedTab == "account",
-            onClick = { onTabSelected("account") },
+            selected = selectedTab == "Profile",
+            onClick = { onTabSelected("Profile") },
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
             label = { Text("Profile", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
