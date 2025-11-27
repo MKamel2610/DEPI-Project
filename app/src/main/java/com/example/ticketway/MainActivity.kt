@@ -7,49 +7,50 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.ticketway.data.local.DatabaseProvider
 import com.example.ticketway.data.repository.BookingRepository
-import com.example.ticketway.data.repository.UserRepository
 import com.example.ticketway.ui.booking.BookingViewModel
+import com.example.ticketway.ui.components.homescreen.BottomNavigationBar
 import com.example.ticketway.ui.screens.AuthScreen
 import com.example.ticketway.ui.screens.BookingHomeScreen
 import com.example.ticketway.ui.screens.ProfileSetupScreen
 import com.example.ticketway.ui.screens.booking.TierSelectionScreen
 import com.example.ticketway.ui.screens.booking.BookingSummaryScreen
-// Removed import: PaymentWebviewScreen
+import com.example.ticketway.ui.screens.MockPaymentScreen
 import com.example.ticketway.ui.screens.profile.ProfileScreen
+import com.example.ticketway.ui.screens.MyTicketsScreen
 import com.example.ticketway.ui.theme.TicketWayTheme
+import com.example.ticketway.ui.ui.theme.DarkText
 import com.example.ticketway.ui.user.UserViewModel
 import com.example.ticketway.ui.viewmodel.AuthViewModel
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
 import com.example.ticketway.ui.viewmodel.FixturesViewModelFactory
+import com.example.ticketway.ui.viewmodel.MyTicketsViewModel
 import com.example.ticketway.ui.viewmodel.RegistrationStep
 import androidx.activity.compose.BackHandler
-import androidx.lifecycle.ViewModel
-
-// Reverted to single repository constructor for BookingViewModel
-class BookingViewModelFactory(private val bookingRepo: BookingRepository) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(BookingViewModel::class.java)) {
-            return BookingViewModel(bookingRepo) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
-
-
+import androidx.compose.foundation.background
+import com.example.ticketway.data.model.BookingItem
+import com.example.ticketway.ui.screens.TicketDetailsScreen
+import com.example.ticketway.ui.viewmodel.BookingViewModelFactory
+import com.example.ticketway.ui.viewmodel.MyTicketsViewModelFactory
 class MainActivity : ComponentActivity() {
 
     private lateinit var fixturesViewModel: FixturesViewModel
     private lateinit var authViewModel: AuthViewModel
     private lateinit var userViewModel: UserViewModel
     private lateinit var bookingViewModel: BookingViewModel
+    private lateinit var myTicketsViewModel: MyTicketsViewModel
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,15 +62,16 @@ class MainActivity : ComponentActivity() {
         val db = DatabaseProvider.getDatabase(this)
         val fixturesFactory = FixturesViewModelFactory(db)
         val bookingRepo = BookingRepository()
-        // Removed PaymobRepo init
 
-        val bookingFactory = BookingViewModelFactory(bookingRepo) // Reverted to single factory
+        val bookingFactory = BookingViewModelFactory(bookingRepo)
+        val myTicketsFactory = MyTicketsViewModelFactory(bookingRepo)
 
         // Initialize ViewModels
         fixturesViewModel = ViewModelProvider(this, fixturesFactory)[FixturesViewModel::class.java]
         authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
         userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
         bookingViewModel = ViewModelProvider(this, bookingFactory)[BookingViewModel::class.java]
+        myTicketsViewModel = ViewModelProvider(this, myTicketsFactory)[MyTicketsViewModel::class.java]
 
 
         setContent {
@@ -78,7 +80,8 @@ class MainActivity : ComponentActivity() {
                     fixturesViewModel = fixturesViewModel,
                     authViewModel = authViewModel,
                     userViewModel = userViewModel,
-                    bookingViewModel = bookingViewModel
+                    bookingViewModel = bookingViewModel,
+                    myTicketsViewModel = myTicketsViewModel
                 )
             }
         }
@@ -92,7 +95,8 @@ fun AppContent(
     fixturesViewModel: FixturesViewModel,
     authViewModel: AuthViewModel,
     userViewModel: UserViewModel,
-    bookingViewModel: BookingViewModel
+    bookingViewModel: BookingViewModel,
+    myTicketsViewModel: MyTicketsViewModel
 ) {
     // Primary navigation states
     var showAuth by remember { mutableStateOf(true) }
@@ -100,7 +104,9 @@ fun AppContent(
     var showProfileSetup by remember { mutableStateOf(false) }
     var showTierSelection by remember { mutableStateOf(false) }
     var showBookingSummary by remember { mutableStateOf(false) }
-    // Removed showPaymentWebview state
+    var showMockPaymentScreen by remember { mutableStateOf(false) }
+    var showTicketDetails by remember { mutableStateOf(false) }
+    var selectedTicket by remember { mutableStateOf<BookingItem?>(null) }
     var currentTab by remember { mutableStateOf("home") }
 
     val authState by authViewModel.authState.collectAsState()
@@ -133,21 +139,40 @@ fun AppContent(
         }
     }
 
-    // Removed LaunchedEffect(paymobUrl)
+    // Watch for successful save after payment attempt
+    val isBookingSuccess by bookingViewModel.isSuccess.collectAsState()
+    LaunchedEffect(isBookingSuccess) {
+        if (isBookingSuccess) {
+            // Success navigation: Go to My Tickets screen and refresh the list
+            showMockPaymentScreen = false
+            currentTab = "My Tickets"
+            myTicketsViewModel.loadTickets()
+            bookingViewModel.clearBookingState()
+        }
+    }
 
-    // --- Back Stack Management FIX (Reverted to stable state) ---
+    // --- Back Stack Management ---
 
-    val isDeepScreenActive = showTierSelection || showProfileSetup || showAuthModal || currentTab == "Profile" || showBookingSummary
+    // The handler should be active if ANY non-home-tab or deep screen is showing.
+    // This includes the Profile and My Tickets main tabs for custom navigation back to 'home'.
+    val isCustomBackNavigationActive = showTierSelection || showProfileSetup || showAuthModal || showBookingSummary || showMockPaymentScreen || showTicketDetails || currentTab == "Profile" || currentTab == "My Tickets"
 
-    BackHandler(enabled = isDeepScreenActive) {
+    BackHandler(enabled = isCustomBackNavigationActive) {
         when {
+            // 1. Deep Screen Back Navigation
+            showTicketDetails -> {
+                showTicketDetails = false
+                selectedTicket = null
+            }
+            showMockPaymentScreen -> {
+                showMockPaymentScreen = false
+                showBookingSummary = true
+            }
             showBookingSummary -> {
-                // Back from Summary goes to Tier Selection
                 showBookingSummary = false
                 showTierSelection = true
             }
             showTierSelection -> {
-                // Back from Tier Selection goes to Home, clearing booking state
                 showTierSelection = false
                 bookingViewModel.clearBookingState()
             }
@@ -157,9 +182,17 @@ fun AppContent(
             showAuthModal -> {
                 showAuthModal = false
             }
+
+            // 2. Tab Navigation Back to Home (Per user request)
             currentTab == "Profile" -> {
                 currentTab = "home"
             }
+            currentTab == "My Tickets" -> { // NEW: Handle back from My Tickets
+                currentTab = "home"
+            }
+
+            // Note: If currentTab is "home" and no deep screen is active, isCustomBackNavigationActive is false,
+            // and the system handles the exit.
         }
     }
 
@@ -182,14 +215,28 @@ fun AppContent(
             viewModel = authViewModel,
             onSetupComplete = { /* ... */ }
         )
+    } else if (showMockPaymentScreen) {
+        MockPaymentScreen(
+            viewModel = bookingViewModel,
+            onPaymentSuccess = {
+                // Success action handled by LaunchedEffect(isBookingSuccess)
+            },
+            onPaymentFailure = {
+                showMockPaymentScreen = false
+                showBookingSummary = true
+            },
+            onClose = {
+                showMockPaymentScreen = false
+                showBookingSummary = true
+            }
+        )
     } else if (showBookingSummary) {
         BookingSummaryScreen(
             bookingViewModel = bookingViewModel,
             onProcedeToPayment = {
-                // FINAL STEP: Navigating home as payment is removed
+                // Final button navigates to the Mock Payment screen
                 showBookingSummary = false
-                currentTab = "home"
-                bookingViewModel.clearBookingState()
+                showMockPaymentScreen = true
             },
             onBack = {
                 showBookingSummary = false
@@ -208,13 +255,38 @@ fun AppContent(
                 showTierSelection = false
             }
         )
+    } else if (showTicketDetails && selectedTicket != null) { // Dedicated view for Ticket Details
+        TicketDetailsScreen(
+            booking = selectedTicket!!,
+            onBack = {
+                showTicketDetails = false
+                selectedTicket = null
+            }
+        )
     } else {
-        // Main Home Screen flow with Bottom Navigation
-        when (currentTab) {
-            "home", "My Tickets" -> {
-                BookingHomeScreen(
-                    viewModel = fixturesViewModel,
-                    currentTab = currentTab,
+        // Main Home Screen flow with Bottom Navigation and Shared Header
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            "TicketWay",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkText
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = { fixturesViewModel.refresh() }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = DarkText)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                )
+            },
+            bottomBar = {
+                BottomNavigationBar(
+                    selectedTab = currentTab,
                     onTabSelected = { newTab ->
                         currentTab = newTab
                         if (newTab == "Profile") {
@@ -222,28 +294,54 @@ fun AppContent(
                                 showAuthModal = true
                                 currentTab = "home"
                             }
-                        }
-                    },
-                    onMatchClick = { fixture ->
-                        if (authState != true) {
-                            showAuthModal = true
-                        } else {
-                            bookingViewModel.startBooking(fixture)
-                            showTierSelection = true
+                        } else if (newTab == "My Tickets") {
+                            myTicketsViewModel.loadTickets()
                         }
                     }
                 )
             }
-            "Profile" -> {
-                ProfileScreen(
-                    viewModel = userViewModel,
-                    onBack = { currentTab = "home" },
-                    onLogout = onLogout
-                )
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(Color.White)
+            ) {
+                when (currentTab) {
+                    "home" -> {
+                        BookingHomeScreen(
+                            viewModel = fixturesViewModel,
+                            onMatchClick = { fixture ->
+                                if (authState != true) {
+                                    showAuthModal = true
+                                } else {
+                                    bookingViewModel.startBooking(fixture)
+                                    showTierSelection = true
+                                }
+                            }
+                        )
+                    }
+                    "My Tickets" -> {
+                        MyTicketsScreen(
+                            viewModel = myTicketsViewModel,
+                            onTicketClick = { booking ->
+                                selectedTicket = booking
+                                showTicketDetails = true
+                            }
+                        )
+                    }
+                    "Profile" -> {
+                        ProfileScreen(
+                            viewModel = userViewModel,
+                            onBack = { currentTab = "home" },
+                            onLogout = onLogout
+                        )
+                    }
+                }
             }
         }
 
-        // Auth modal (for booking or accessing profile when not logged in)
+        // Auth modal
         if (showAuthModal) {
             ModalBottomSheet(
                 onDismissRequest = { showAuthModal = false }

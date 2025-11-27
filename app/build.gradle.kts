@@ -129,4 +129,12 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.6")
 
     implementation("androidx.compose.material3:material3:1.4.0")
+
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    ksp("com.google.dagger:hilt-compiler:2.57.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    implementation("androidx.hilt:hilt-work:1.3.0")
+
+    implementation("androidx.work:work-runtime-ktx:2.11.0")
+
 }

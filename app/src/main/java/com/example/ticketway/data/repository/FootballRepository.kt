@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.ZoneId // NEW IMPORT
+import java.time.ZonedDateTime // NEW IMPORT
 
 class FootballRepository(private val db: CacheDatabase) {
 
@@ -55,14 +57,18 @@ class FootballRepository(private val db: CacheDatabase) {
     // -----------------------------
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getThreeDayFixtures(): FixtureResponse? = withContext(Dispatchers.IO) {
-        val today = LocalDate.now()
+
+        // FIX: Use UTC time zone to determine the current calendar day for API consistency
+        val utcZone = ZoneId.of("UTC")
+        val today = ZonedDateTime.now(utcZone).toLocalDate()
+
         val yesterday = today.minusDays(1)
         val tomorrow = today.plusDays(1)
 
         val dates = listOf(yesterday, today, tomorrow)
         val allFixtures = mutableListOf<com.example.ticketway.data.network.model.fixtures.FixtureItem>()
 
-        Log.d("FootballRepository", "📅 Fetching 3-day window: $yesterday, $today, $tomorrow")
+        Log.d("FootballRepository", "📅 Fetching 3-day window (UTC): $yesterday, $today, $tomorrow")
 
         dates.forEach { date ->
             val dateStr = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))

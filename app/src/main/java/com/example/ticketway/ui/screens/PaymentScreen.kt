@@ -1,134 +1,178 @@
-//package com.example.ticketway.ui.screens
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.layout.*
-//import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.material3.*
-//import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.ArrowBack
-//import androidx.compose.runtime.*
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.unit.dp
-//import androidx.navigation.NavController
-//import com.example.ticketway.ui.booking.BookingViewModel
-//import androidx.compose.ui.tooling.preview.Preview
-//import androidx.navigation.compose.rememberNavController
-//
-//val mainColor = Color(0xFF009688)
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun PaymentScreen(
-//    navController: NavController,
-//    bookingViewModel: BookingViewModel,
-//    onStartStripePayment: (amountInCents: Int) -> Unit = {}
-//) {
-//    val booking = bookingViewModel.tempBooking
-//    val totalPrice = booking?.totalPrice ?: 0
-//
-//    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = { Text("Payment", color = Color.Black) },
-//                navigationIcon = {
-//                    IconButton(onClick = {
-//                        navController.navigate("booking_summary")
-//                    }) {
-//                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.Black)
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-//            )
-//        }
-//    ) { padding ->
-//
-//        Column(
-//            modifier = Modifier
-//                .padding(padding)
-//                .fillMaxSize()
-//                .padding(16.dp),
-//            verticalArrangement = Arrangement.spacedBy(20.dp)
-//        ) {
-//
-//            // ------------- Review Card -------------
-//            Card(
-//                shape = RoundedCornerShape(18.dp),
-//                colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F1F1)),
-//                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Column(modifier = Modifier.padding(18.dp)) {
-//
-//                    Text(
-//                        text = "Booking Review",
-//                        style = MaterialTheme.typography.titleMedium,
-//                        color = mainColor,
-//                        fontWeight = FontWeight.Bold
-//                    )
-//
-//                    Spacer(modifier = Modifier.height(12.dp))
-//
-//                    Text("Teams: ${booking?.homeTeam} vs ${booking?.awayTeam}", color = Color.Black)
-//                    Text("Stadium: ${booking?.stadiumName}", color = Color.Black)
-//                    Text("Match Date: ${booking?.matchDate}", color = Color.Black)
-//
-//                    Spacer(modifier = Modifier.height(12.dp))
-//
-//                    Text(
-//                        text = "Total Price : $totalPrice EGP",
-//                        fontWeight = FontWeight.Bold,
-//                        color = mainColor,
-//                        style = MaterialTheme.typography.titleLarge
-//                    )
-//                }
-//            }
-//
-//            // ------------- Stripe Card -------------
-//            Card(
-//                shape = RoundedCornerShape(20.dp),
-//                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-//                colors = CardDefaults.cardColors(
-//                    containerColor = Color(0xFF635BFF) // Stripe Blue
-//                ),
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ) {
-//
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(20.dp),
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//
-//                    Text(
-//                        text = "Stripe",
-//                        color = Color.White,
-//                        fontWeight = FontWeight.Bold,
-//                        style = MaterialTheme.typography.headlineMedium
-//                    )
-//
-//                    Spacer(modifier = Modifier.height(16.dp))
-//
-//                    Button(
-//                        onClick = { onStartStripePayment(totalPrice * 100) },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(50.dp),
-//                        shape = RoundedCornerShape(12.dp),
-//                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-//                    ) {
-//                        Text(
-//                            "Continue with Stripe",
-//                            color = Color(0xFF635BFF),
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
+@file:JvmName("PaymentScreenKt")
+
+package com.example.ticketway.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.ticketway.ui.booking.BookingViewModel
+import com.example.ticketway.ui.ui.theme.DarkText
+import com.example.ticketway.ui.ui.theme.LightGray
+import com.example.ticketway.ui.ui.theme.PrimaryGreen
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MockPaymentScreen(
+    viewModel: BookingViewModel,
+    onPaymentSuccess: () -> Unit,
+    onPaymentFailure: () -> Unit,
+    onClose: () -> Unit
+) {
+    var cardNumber by remember { mutableStateOf("") }
+    var expirationDate by remember { mutableStateOf("") }
+    var cvv by remember { mutableStateOf("") }
+    var cardholderName by remember { mutableStateOf("") }
+    var localError by remember { mutableStateOf<String?>(null) }
+
+    val totalPrice by viewModel.totalPrice.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val isPaymentSuccess by viewModel.isSuccess.collectAsState()
+
+    val focusManager = LocalFocusManager.current
+
+    // Observe final save result
+    LaunchedEffect(isPaymentSuccess) {
+        if (isPaymentSuccess) {
+            onPaymentSuccess()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Payment Gateway", color = DarkText, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onClose) {
+                        Icon(Icons.Default.Close, contentDescription = "Close Payment", tint = DarkText)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = LightGray)
+            )
+        },
+        containerColor = LightGray
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "PAY EGP ${totalPrice}.00",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = PrimaryGreen,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            // --- Card Inputs ---
+            OutlinedTextField(
+                value = cardNumber,
+                onValueChange = { cardNumber = it.filter { it.isDigit() }.take(16) },
+                label = { Text("Card Number") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                // Expiry Date
+                OutlinedTextField(
+                    value = expirationDate,
+                    onValueChange = { expirationDate = it.filter { it.isDigit() || it == '/' }.take(5) },
+                    label = { Text("MM/YY") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Right) }),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                // CVV
+                OutlinedTextField(
+                    value = cvv,
+                    onValueChange = { cvv = it.filter { it.isDigit() }.take(3) },
+                    label = { Text("CVV") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = cardholderName,
+                onValueChange = { cardholderName = it },
+                label = { Text("Cardholder Name") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            // Error Display
+            if (localError != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(localError!!, color = MaterialTheme.colorScheme.error)
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // --- Pay Button (Always returns success) ---
+            Button(
+                onClick = {
+                    if (cardNumber.length != 16) {
+                        localError = "Please enter a valid 16-digit card number."
+                        return@Button
+                    }
+                    if (totalPrice == 0) {
+                        localError = "Cannot process zero price payment."
+                        return@Button
+                    }
+
+                    localError = null
+                    focusManager.clearFocus()
+                    viewModel.finalizeBookingAndSave()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Pay Now", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}

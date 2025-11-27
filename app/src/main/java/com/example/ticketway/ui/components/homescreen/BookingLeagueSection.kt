@@ -2,12 +2,9 @@ package com.example.ticketway.ui.components
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +20,8 @@ import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.example.ticketway.ui.ui.theme.*
+import java.time.ZoneId // NEW IMPORT
+import java.time.ZonedDateTime // NEW IMPORT
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -49,7 +48,7 @@ fun BookingLeagueSection(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        color = LightGray,
+        color = LightGray, // Keeping LightGray
         tonalElevation = 1.dp
     ) {
         Column(modifier = Modifier.padding(vertical = 16.dp)) {
@@ -57,7 +56,7 @@ fun BookingLeagueSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onLeagueClick)
+                    // Clickable modifier remains REMOVED
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -102,11 +101,7 @@ fun BookingLeagueSection(
                     }
                 }
 
-                Icon(
-                    Icons.Default.KeyboardArrowRight,
-                    contentDescription = "View all",
-                    tint = LightText
-                )
+                // Arrow Icon remains REMOVED
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -126,16 +121,26 @@ fun BookingLeagueSection(
 @RequiresApi(Build.VERSION_CODES.O)
 private fun isFixtureAvailable(fixture: FixtureItem): Boolean {
     return try {
-        val fixtureDateTime = LocalDateTime.parse(
+        // Parse the fixture date string as ZonedDateTime, assuming it is UTC (API standard).
+        val fixtureZonedDateTime = ZonedDateTime.parse(
             fixture.fixture.date,
-            DateTimeFormatter.ISO_DATE_TIME
+            DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneId.of("UTC"))
         )
-        val today = LocalDateTime.now()
 
-        // Yesterday's matches are unavailable (sold out)
-        // Today and tomorrow are available
-        fixtureDateTime.toLocalDate() >= today.toLocalDate()
+        // Get the current time, explicitly in UTC.
+        val nowUtc = ZonedDateTime.now(ZoneId.of("UTC"))
+
+        // FIX: Compare the full UTC fixture time against the current UTC time.
+        // A match is available if its scheduled time is greater than or equal to now.
+        // We use a margin (e.g., 1 hour) if needed, but simple comparison is safer.
+
+        // Use plusHours(1) to keep matches available for a grace period after they start,
+        // but for a strict "sold out" on start, just use fixtureZonedDateTime > nowUtc.
+        // Based on the old logic (which checked date only), a simple datetime check is best.
+        return fixtureZonedDateTime.toLocalDateTime() >= nowUtc.toLocalDateTime()
+
     } catch (e: Exception) {
-        true // Default to available if can't parse
+        // Handle parsing errors gracefully
+        true
     }
 }

@@ -14,7 +14,7 @@ val Pink40 = Color(0xFF7D5260)
 
 val PrimaryGreen = Color(0xFF009688)
 val LightGray = Color(0xFFF5F5F5)
-val BorderGray = Color(0xFFE0E0E0)
+val BorderGray = Color(0xFFADADAD)
 val DarkText = Color(0xFF212121)
 val MediumText = Color(0xFF424242)
 val LightText = Color(0xFF757575)

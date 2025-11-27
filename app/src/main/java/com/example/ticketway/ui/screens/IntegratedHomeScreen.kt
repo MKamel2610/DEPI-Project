@@ -5,9 +5,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import com.example.ticketway.ui.components.*
-import com.example.ticketway.ui.components.homescreen.BottomNavigationBar
 import com.example.ticketway.ui.components.homescreen.LeagueFilterRow
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
 import com.example.ticketway.ui.ui.theme.*
@@ -27,77 +23,31 @@ import com.example.ticketway.ui.ui.theme.*
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingHomeScreen( // Renamed parameters to align with use in MainActivity
+fun BookingHomeScreen( // UPDATED: Simplified parameters, removed navigation logic
     viewModel: FixturesViewModel,
-    currentTab: String, // NEW: Current selected tab state
-    onTabSelected: (String) -> Unit, // NEW: Callback for tab clicks
-    onMatchClick: (FixtureItem) -> Unit = {},
-    onMenuClick: () -> Unit = {}
+    onMatchClick: (FixtureItem) -> Unit = {}
 ) {
     val fixturesState by viewModel.fixtures.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     var selectedLeagueId by remember { mutableStateOf<Int?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "TicketWay",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkText
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(
-                            Icons.Default.Menu,
-                            contentDescription = "Menu",
-                            tint = DarkText
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(
-                            Icons.Default.Refresh,
-                            contentDescription = "Refresh",
-                            tint = DarkText
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                selectedTab = currentTab, // Use current tab state
-                onTabSelected = onTabSelected // Pass the callback
-            )
-        }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(Color.White)
-        ) {
-            // Check the current tab and display appropriate content
-            when (currentTab) {
-                "home" -> MatchListContent(
-                    fixturesState = fixturesState?.response ?: emptyList(),
-                    isLoading = isLoading,
-                    selectedLeagueId = selectedLeagueId,
-                    onLeagueSelected = { selectedLeagueId = it },
-                    onMatchClick = onMatchClick
-                )
-                "My Tickets" -> EmptyTicketsContent() // Placeholder for My Tickets
-            }
-        }
+    // Scaffold, TopAppBar, and BottomBar REMOVED
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            // Padding removed as it is now applied by the parent Scaffold in MainActivity
+            .background(Color.White)
+    ) {
+        // Only render MatchListContent, as tab switching is now handled by AppContent
+        MatchListContent(
+            fixturesState = fixturesState?.response ?: emptyList(),
+            isLoading = isLoading,
+            selectedLeagueId = selectedLeagueId,
+            onLeagueSelected = { selectedLeagueId = it },
+            onMatchClick = onMatchClick
+        )
     }
 }
 

@@ -32,7 +32,7 @@ import java.time.format.DateTimeFormatter
 // --- Constants ---
 private const val REGULAR_PRICE = 100
 private const val PREMIUM_PRICE = 200
-private const val VAT_RATE = 0.14 // Assuming 14% VAT
+private const val VAT_RATE = 0.14
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,9 +45,8 @@ fun BookingSummaryScreen(
     val fixture by bookingViewModel.currentFixture.collectAsState()
     val regCount by bookingViewModel.regularCount.collectAsState()
     val premCount by bookingViewModel.premiumCount.collectAsState()
-    val errorMsg by bookingViewModel.errorMsg.collectAsState() // FIX: Observe error state
+    // Removed observation of errorMsg
 
-    // FIXED: Ensure price math is performed using Double before calculations
     val subtotal = ((regCount * REGULAR_PRICE) + (premCount * PREMIUM_PRICE)).toDouble()
 
     val vatAmount = subtotal * VAT_RATE
@@ -90,17 +89,7 @@ fun BookingSummaryScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // FIX: Display Error Message prominently if returned from a failed payment attempt
-            if (errorMsg != null) {
-                Text(
-                    text = errorMsg!!,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            // Removed Error Message Display
 
             // 1. Match Details Card
             MatchSummaryCard(fixture!!)
@@ -121,7 +110,7 @@ fun BookingSummaryScreen(
     }
 }
 
-// ... (Helper Composables remain the same)
+// --- Helper Composables (remaining the same) ---
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

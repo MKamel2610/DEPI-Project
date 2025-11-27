@@ -16,13 +16,11 @@ private const val PREMIUM_PRICE = 200
 private const val MAX_TICKETS = 4
 
 class BookingViewModel(
-    // Reverted to original constructor
     private val repo: BookingRepository
 ) : ViewModel() {
 
     // --- State fields removed: _paymobUrl, _currentBookingId ---
 
-    // --- Match Data and UI States (existing) ---
     private val _currentFixture = MutableStateFlow<FixtureItem?>(null)
     val currentFixture: StateFlow<FixtureItem?> = _currentFixture.asStateFlow()
 
@@ -35,7 +33,6 @@ class BookingViewModel(
     private val _errorMsg = MutableStateFlow<String?>(null)
     val errorMsg: StateFlow<String?> = _errorMsg.asStateFlow()
 
-    // --- Ticket Selection StateFlows (existing) ---
     private val _regularCount = MutableStateFlow(0)
     val regularCount: StateFlow<Int> = _regularCount.asStateFlow()
 
@@ -108,14 +105,40 @@ class BookingViewModel(
         _errorMsg.value = null
         _isSuccess.value = false
         _isLoading.value = false
-        // Removed Paymob specific state clearing
     }
 
-    // Removed initiatePayment, handlePaymentResult
+    /**
+     * NEW: Finalizes the booking by setting status to PAID and saving to Firestore.
+     */
+    fun finalizeBookingAndSave() {
+        val fixture = _currentFixture.value ?: return
 
-    private fun createPendingBooking(fixture: FixtureItem): BookingItem {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMsg.value = null
+
+            // 1. Create Final Booking Item
+            val bookingToSave = createFinalBookingItem(fixture)
+
+            // 2. Save to Firestore
+            val isSaved = repo.saveBooking(bookingToSave)
+
+            _isLoading.value = false
+
+            if (isSaved) {
+                _isSuccess.value = true
+                _errorMsg.value = null
+            } else {
+                _isSuccess.value = false
+                _errorMsg.value = "Payment confirmed, but failed to save booking details to Firebase."
+            }
+        }
+    }
+
+    private fun createFinalBookingItem(fixture: FixtureItem): BookingItem {
         val total = totalPrice.value
         return BookingItem(
+            bookingId = UUID.randomUUID().toString(), // Generate new unique ID
             fixtureId = fixture.fixture.id,
             homeTeam = fixture.teams.home.name,
             awayTeam = fixture.teams.away.name,
@@ -125,7 +148,7 @@ class BookingViewModel(
             regularCount = _regularCount.value,
             premiumCount = _premiumCount.value,
             totalPrice = total,
-            paymentStatus = "PENDING"
+            paymentStatus = "PAID" // Mocked success
         )
     }
 }

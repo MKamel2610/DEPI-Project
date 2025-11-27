@@ -22,6 +22,8 @@ import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.example.ticketway.ui.ui.theme.*
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -202,10 +204,16 @@ fun BookingMatchCard(
 @RequiresApi(Build.VERSION_CODES.O)
 private fun formatDateTime(dateTimeString: String): String {
     return try {
-        val dateTime = LocalDateTime.parse(dateTimeString, DateTimeFormatter.ISO_DATE_TIME)
-        // Shift date by +7 days
-        val shiftedDateTime = dateTime.plusDays(7)
-        shiftedDateTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy • HH:mm"))
+        // 1. Parse API string as UTC ZonedDateTime
+        val dateTimeUtc = ZonedDateTime.parse(dateTimeString, DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneId.of("UTC")))
+
+        // 2. SHIFT THE DATE FORWARD BY 7 DAYS for display realism
+        val shiftedDateTimeUtc = dateTimeUtc.plusDays(7)
+
+        // 3. Convert the shifted time to the local time zone for display
+        val localDateTime = shiftedDateTimeUtc.withZoneSameInstant(ZoneId.systemDefault())
+
+        localDateTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy • HH:mm"))
     } catch (e: Exception) {
         dateTimeString
     }
