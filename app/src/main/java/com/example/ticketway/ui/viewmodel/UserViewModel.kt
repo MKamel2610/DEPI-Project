@@ -8,10 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject // NEW IMPORT
+import dagger.hilt.android.lifecycle.HiltViewModel // NEW IMPORT
 
 // This ViewModel handles fetching and updating the *details* of the authenticated user.
-class UserViewModel(
-    private val repo: UserRepository = UserRepository()
+@HiltViewModel // NEW ANNOTATION
+class UserViewModel @Inject constructor( // NEW ANNOTATION
+    private val repo: UserRepository // Hilt will inject UserRepository
 ) : ViewModel() {
 
     // Holds the fetched profile data (or null if not loaded/error)

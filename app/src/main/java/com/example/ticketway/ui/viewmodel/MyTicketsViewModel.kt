@@ -8,9 +8,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject // NEW IMPORT
+import dagger.hilt.android.lifecycle.HiltViewModel // NEW IMPORT
 
-class MyTicketsViewModel(
-    private val repo: BookingRepository = BookingRepository()
+@HiltViewModel // NEW ANNOTATION
+class MyTicketsViewModel @Inject constructor( // NEW ANNOTATION
+    private val repo: BookingRepository
 ) : ViewModel() {
 
     private val _tickets = MutableStateFlow<List<BookingItem>>(emptyList())

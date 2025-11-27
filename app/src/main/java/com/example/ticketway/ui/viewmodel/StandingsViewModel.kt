@@ -8,10 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import javax.inject.Inject // NEW IMPORT
+import dagger.hilt.android.lifecycle.HiltViewModel // NEW IMPORT
 
-class StandingsViewModel(
-    private val repository: FootballRepository
-) : ViewModel() {
+@HiltViewModel // NEW ANNOTATION
+class StandingsViewModel @Inject constructor(private val repository: FootballRepository) : ViewModel() { // NEW ANNOTATION
 
     private val _standings = MutableStateFlow<StandingsResponse?>(null)
     val standings: StateFlow<StandingsResponse?> = _standings

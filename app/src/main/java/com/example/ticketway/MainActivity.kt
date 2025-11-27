@@ -16,10 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import com.example.ticketway.data.local.DatabaseProvider
-import com.example.ticketway.data.repository.BookingRepository
 import com.example.ticketway.ui.booking.BookingViewModel
 import com.example.ticketway.ui.components.homescreen.BottomNavigationBar
 import com.example.ticketway.ui.screens.AuthScreen
@@ -35,22 +31,26 @@ import com.example.ticketway.ui.ui.theme.DarkText
 import com.example.ticketway.ui.user.UserViewModel
 import com.example.ticketway.ui.viewmodel.AuthViewModel
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
-import com.example.ticketway.ui.viewmodel.FixturesViewModelFactory
 import com.example.ticketway.ui.viewmodel.MyTicketsViewModel
 import com.example.ticketway.ui.viewmodel.RegistrationStep
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import com.example.ticketway.data.model.BookingItem
 import com.example.ticketway.ui.screens.TicketDetailsScreen
-import com.example.ticketway.ui.viewmodel.BookingViewModelFactory
-import com.example.ticketway.ui.viewmodel.MyTicketsViewModelFactory
+import androidx.activity.viewModels
+import dagger.hilt.android.AndroidEntryPoint
+
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var fixturesViewModel: FixturesViewModel
-    private lateinit var authViewModel: AuthViewModel
-    private lateinit var userViewModel: UserViewModel
-    private lateinit var bookingViewModel: BookingViewModel
-    private lateinit var myTicketsViewModel: MyTicketsViewModel
+    // Inject ViewModels using the delegate (Hilt handles the factory)
+    @delegate:RequiresApi(Build.VERSION_CODES.O)
+    private val fixturesViewModel: FixturesViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
+    private val userViewModel: UserViewModel by viewModels()
+    private val bookingViewModel: BookingViewModel by viewModels()
+    private val myTicketsViewModel: MyTicketsViewModel by viewModels()
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,21 +58,7 @@ class MainActivity : ComponentActivity() {
 
         Log.d("MainActivity", "onCreate called")
 
-        // Initialize Repositories and Factories
-        val db = DatabaseProvider.getDatabase(this)
-        val fixturesFactory = FixturesViewModelFactory(db)
-        val bookingRepo = BookingRepository()
-
-        val bookingFactory = BookingViewModelFactory(bookingRepo)
-        val myTicketsFactory = MyTicketsViewModelFactory(bookingRepo)
-
-        // Initialize ViewModels
-        fixturesViewModel = ViewModelProvider(this, fixturesFactory)[FixturesViewModel::class.java]
-        authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
-        userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
-        bookingViewModel = ViewModelProvider(this, bookingFactory)[BookingViewModel::class.java]
-        myTicketsViewModel = ViewModelProvider(this, myTicketsFactory)[MyTicketsViewModel::class.java]
-
+        // Manual repository and factory initialization is REMOVED due to Hilt
 
         setContent {
             TicketWayTheme {
@@ -154,7 +140,6 @@ fun AppContent(
     // --- Back Stack Management ---
 
     // The handler should be active if ANY non-home-tab or deep screen is showing.
-    // This includes the Profile and My Tickets main tabs for custom navigation back to 'home'.
     val isCustomBackNavigationActive = showTierSelection || showProfileSetup || showAuthModal || showBookingSummary || showMockPaymentScreen || showTicketDetails || currentTab == "Profile" || currentTab == "My Tickets"
 
     BackHandler(enabled = isCustomBackNavigationActive) {
@@ -187,12 +172,9 @@ fun AppContent(
             currentTab == "Profile" -> {
                 currentTab = "home"
             }
-            currentTab == "My Tickets" -> { // NEW: Handle back from My Tickets
+            currentTab == "My Tickets" -> {
                 currentTab = "home"
             }
-
-            // Note: If currentTab is "home" and no deep screen is active, isCustomBackNavigationActive is false,
-            // and the system handles the exit.
         }
     }
 

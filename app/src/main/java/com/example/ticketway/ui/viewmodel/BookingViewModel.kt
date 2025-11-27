@@ -9,13 +9,16 @@ import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
+import javax.inject.Inject
+import dagger.hilt.android.lifecycle.HiltViewModel // NEW IMPORT
 
 // Define Prices (using existing values)
 private const val REGULAR_PRICE = 100
 private const val PREMIUM_PRICE = 200
 private const val MAX_TICKETS = 4
 
-class BookingViewModel(
+@HiltViewModel // NEW ANNOTATION
+class BookingViewModel @Inject constructor( // NEW ANNOTATION
     private val repo: BookingRepository
 ) : ViewModel() {
 
@@ -108,7 +111,7 @@ class BookingViewModel(
     }
 
     /**
-     * NEW: Finalizes the booking by setting status to PAID and saving to Firestore.
+     * Finalizes the booking by setting status to PAID and saving to Firestore.
      */
     fun finalizeBookingAndSave() {
         val fixture = _currentFixture.value ?: return

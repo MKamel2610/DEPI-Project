@@ -6,14 +6,17 @@ import com.example.ticketway.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject // NEW IMPORT
+import dagger.hilt.android.lifecycle.HiltViewModel // NEW IMPORT
 
 enum class RegistrationStep {
     AUTH_COMPLETE, // Auth successful, proceed to profile setup
     NONE // Initial or failed state
 }
 
-class AuthViewModel(
-    private val repository: AuthRepository = AuthRepository()
+@HiltViewModel // NEW ANNOTATION
+class AuthViewModel @Inject constructor( // NEW ANNOTATION
+    private val repository: AuthRepository // Hilt will inject AuthRepository
 ) : ViewModel() {
 
     // authState: true for final success (ready for home), false for failure, null for initial/logged out

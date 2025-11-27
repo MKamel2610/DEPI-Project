@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
 // Custom exceptions to provide readable error messages from the repository
 sealed class AuthException(message: String) : Exception(message) {
@@ -16,9 +17,9 @@ sealed class AuthException(message: String) : Exception(message) {
     class UnknownError(message: String) : AuthException(message)
 }
 
-class AuthRepository(
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+class AuthRepository @Inject constructor( // ADD @Inject constructor
+    private val auth: FirebaseAuth, // Injected dependency
+    private val firestore: FirebaseFirestore // Injected dependency
 ) {
     val currentUser get() = auth.currentUser
     val currentUserId get() = auth.currentUser?.uid

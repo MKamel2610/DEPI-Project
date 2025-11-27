@@ -10,9 +10,12 @@ import com.example.ticketway.data.network.model.fixtures.FixtureResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject // NEW IMPORT
+import dagger.hilt.android.lifecycle.HiltViewModel // NEW IMPORT
 
 @RequiresApi(Build.VERSION_CODES.O)
-class FixturesViewModel(
+@HiltViewModel // NEW ANNOTATION
+class FixturesViewModel @Inject constructor( // NEW ANNOTATION
     private val repository: FootballRepository
 ) : ViewModel() {
 
