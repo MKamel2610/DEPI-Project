@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "814125523501",
+    "project_id": "ticketway-4700a",
+    "storage_bucket": "ticketway-4700a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814125523501:android:421a51350e0bae67fecea4",
+        "android_client_info": {
+          "package_name": "com.example.ticketway"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCX3BwAy9ud7o5vxYPlRu8sjfFr0_Td25s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
