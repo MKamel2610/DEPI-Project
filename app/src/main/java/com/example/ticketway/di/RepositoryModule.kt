@@ -20,7 +20,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 
-    // --- Firebase SDK Providers (Hilt needs to know how to get these instances) ---
 
     @Singleton
     @Provides

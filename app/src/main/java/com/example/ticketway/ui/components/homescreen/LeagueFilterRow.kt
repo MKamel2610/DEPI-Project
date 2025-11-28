@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
-import com.example.ticketway.ui.ui.theme.*
 
 
 
@@ -64,10 +63,10 @@ fun FilterChip(
             .clickable(onClick = onClick)
             .border(
                 width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) PrimaryGreen else BorderGray,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), // PrimaryGreen/BorderGray -> dynamic color
                 shape = RoundedCornerShape(24.dp)
             ),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface, // Color.White -> surface
         shape = RoundedCornerShape(24.dp)
     ) {
         Row(
@@ -77,7 +76,7 @@ fun FilterChip(
         ) {
             Text(
                 text = name,
-                color = if (isSelected) PrimaryGreen else DarkText,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, // PrimaryGreen/DarkText -> dynamic color
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 fontSize = 14.sp
             )

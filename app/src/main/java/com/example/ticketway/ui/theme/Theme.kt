@@ -1,7 +1,7 @@
 package com.example.ticketway.ui.theme
 
-import android.app.Activity
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -10,42 +10,59 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.example.ticketway.ui.ui.theme.*
+import androidx.compose.ui.graphics.Color
 
+@RequiresApi(Build.VERSION_CODES.O)
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    // Primary/Accent
+    primary = PrimaryGreen,
+    onPrimary = DarkOnPrimary, // NEW: Use DarkOnPrimary for better contrast on the bright green
+
+    // Backgrounds
+    background = DarkBackground, // Deep standard dark gray
+    surface = DarkSurface,      // Very Dark Grey - Cards, Nav Bar
+    surfaceVariant = DarkSurfaceVariant, // NEW: Distinct medium-dark gray for League Section
+
+    // Text/Content on surfaces
+    onBackground = LightOnDarkText,
+    onSurface = LightOnDarkText,
+    onSurfaceVariant = SecondaryLightOnDarkText,
+
+    // Secondary Text/Content
+    secondary = SecondaryLightOnDarkText,
+    onSecondary = LightOnDarkText
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    // Primary/Accent
+    primary = PrimaryGreen,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+
+    // Backgrounds
+    background = Color.White,
+    surface = Color.White,
+    surfaceVariant = LightGray, // Off-white gray
+
+    // Text/Content on surfaces
+    onBackground = DarkText,
+    onSurface = DarkText,
+    onSurfaceVariant = LightText,
+
+    // Secondary Text/Content
+    secondary = LightText,
+    onSecondary = DarkText
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TicketWayTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

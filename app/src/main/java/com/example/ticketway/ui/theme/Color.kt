@@ -10,7 +10,6 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-// Scora app colors
 val ScoraMainPink = Color(0xFFE91E63)
 val ScoraPinkLight = Color(0xFFF8BBD9)
 val ScoraPinkDark = Color(0xFFAD1457)

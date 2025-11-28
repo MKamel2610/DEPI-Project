@@ -67,11 +67,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.adapters)
-    implementation(libs.firebase.auth)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
+    // Version Variables
     val room_version = "2.8.1"
     val coroutines_version = "1.8.1"
     val retrofit_version = "2.11.0"
@@ -79,8 +75,10 @@ dependencies {
     val moshi_version = "1.15.1"
     val junit_version = "4.13.2"
     val mockk_version = "1.13.11"
+    val hilt_version = "2.57.2"
+    val work_version = "2.11.0"
 
-    // --- Core Android + Compose ---
+    // Core Android & Compose UI
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -89,53 +87,66 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
-    // --- Coroutines ---
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
 
-    // --- Retrofit + OkHttp + Moshi ---
+    // Networking (Retrofit, OkHttp, Moshi)
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation("com.squareup.okhttp3:okhttp:$okhttp_version")
     implementation("com.squareup.okhttp3:logging-interceptor:$okhttp_version")
     implementation("com.squareup.retrofit2:converter-moshi:$retrofit_version")
+
+    // Moshi
     implementation("com.squareup.moshi:moshi:$moshi_version")
-    ksp("com.squareup.moshi:moshi-kotlin-codegen:$moshi_version")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
     implementation("com.squareup.moshi:moshi-kotlin:$moshi_version")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:$moshi_version")
+
+    // Image Loading
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // --- Room ---
+    // Dependency Injection (Hilt)
+    implementation("com.google.dagger:hilt-android:$hilt_version")
+    ksp("com.google.dagger:hilt-compiler:$hilt_version")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    implementation("androidx.hilt:hilt-work:1.3.0")
+
+    // Room
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
-    // --- Testing ---
+    // Firebase & Auth Services
+    implementation(libs.firebase.auth)
+    implementation("com.google.firebase:firebase-firestore:26.0.2")
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // Jetpack Navigation
+    implementation("androidx.navigation:navigation-compose:2.9.6")
+
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:$work_version")
+
+    // Unit Tests
     testImplementation("junit:junit:$junit_version")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
     testImplementation("io.mockk:mockk:$mockk_version")
+
+    // Android Instrumentation Tests
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    implementation("com.google.firebase:firebase-firestore:26.0.2")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
-
-
-    //implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.navigation:navigation-compose:2.9.6")
-
-    implementation("androidx.compose.material3:material3:1.4.0")
-
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    ksp("com.google.dagger:hilt-compiler:2.57.2")
-    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
-    implementation("androidx.hilt:hilt-work:1.3.0")
-
-    implementation("androidx.work:work-runtime-ktx:2.11.0")
-
+    // Debug Tools
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.adapters)
 }

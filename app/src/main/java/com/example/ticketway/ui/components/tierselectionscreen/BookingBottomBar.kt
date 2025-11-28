@@ -31,9 +31,8 @@ fun BookingBottomBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            // FIX: Apply system navigation bar padding to push content up
             .windowInsetsPadding(WindowInsets.navigationBars),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
     ) {
         Row(
@@ -48,13 +47,13 @@ fun BookingBottomBar(
                 Text(
                     text = "Total Price",
                     fontSize = 12.sp,
-                    color = LightText
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "EGP ${"%.2f".format(totalPrice.toDouble())}",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -66,7 +65,7 @@ fun BookingBottomBar(
                     .width(180.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text = if (totalTickets == 0) "Select Tickets" else "Proceed to Payment",

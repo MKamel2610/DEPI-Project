@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.screens
+package com.example.ticketway.ui.screens.previews
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,28 +14,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ticketway.ui.viewmodel.AuthViewModel
-import com.example.ticketway.ui.ui.theme.*
-
 
 @Composable
-fun ProfileSetupScreen(
-    viewModel: AuthViewModel,
-    onSetupComplete: () -> Unit
+private fun ProfileSetupContent(
+    firstName: String,
+    lastName: String,
+    phone: String,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onFirstNameChange: (String) -> Unit,
+    onLastNameChange: (String) -> Unit,
+    onPhoneChange: (String) -> Unit,
+    onComplete: () -> Unit
 ) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
     val focusManager = LocalFocusManager.current
 
     Surface(
@@ -68,17 +66,22 @@ fun ProfileSetupScreen(
             // First Name Field
             OutlinedTextField(
                 value = firstName,
-                onValueChange = {
-                    firstName = it
-                    errorMessage = null
-                },
+                onValueChange = onFirstNameChange,
                 label = { Text("First Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "First Name", tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "First Name",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                ),
                 enabled = !isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -94,17 +97,22 @@ fun ProfileSetupScreen(
             // Last Name Field
             OutlinedTextField(
                 value = lastName,
-                onValueChange = {
-                    lastName = it
-                    errorMessage = null
-                },
+                onValueChange = onLastNameChange,
                 label = { Text("Last Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Last Name", tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "Last Name",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                ),
                 enabled = !isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -120,17 +128,25 @@ fun ProfileSetupScreen(
             // Phone Field
             OutlinedTextField(
                 value = phone,
-                onValueChange = {
-                    phone = it.filter { it.isDigit() }
-                    errorMessage = null
-                },
+                onValueChange = onPhoneChange,
                 label = { Text("Phone Number") },
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = "Phone", tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Phone,
+                        contentDescription = "Phone",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
                 enabled = !isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -141,10 +157,11 @@ fun ProfileSetupScreen(
                 )
             )
 
+            // Error message
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = errorMessage!!,
+                    text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     fontSize = 13.sp
                 )
@@ -154,42 +171,123 @@ fun ProfileSetupScreen(
 
             // Complete Setup Button
             Button(
-                onClick = {
-                    focusManager.clearFocus()
-                    val fullName = "$firstName $lastName".trim()
-
-                    if (fullName.isBlank() || phone.isBlank()) {
-                        errorMessage = "Please enter your full name and phone number."
-                        return@Button
-                    }
-                    if (phone.filter { it.isDigit() }.length < 7) {
-                        errorMessage = "Please enter a valid phone number."
-                        return@Button
-                    }
-
-                    isLoading = true
-                    viewModel.updateUserProfile(fullName, phone) { success ->
-                        isLoading = false
-                        if (success) {
-                            onSetupComplete()
-                        } else {
-                            errorMessage = "Failed to save profile. Please try again."
-                        }
-                    }
-                },
+                onClick = onComplete,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
                 } else {
-                    Text(text = "Complete Setup", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(
+                        text = "Complete Setup",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "Profile Setup - Empty", showBackground = true)
+@Composable
+private fun PreviewProfileSetupEmpty() {
+    MaterialTheme {
+        ProfileSetupContent(
+            firstName = "",
+            lastName = "",
+            phone = "",
+            isLoading = false,
+            errorMessage = null,
+            onFirstNameChange = {},
+            onLastNameChange = {},
+            onPhoneChange = {},
+            onComplete = {}
+        )
+    }
+}
+
+@Preview(name = "Profile Setup - Partially Filled", showBackground = true)
+@Composable
+private fun PreviewProfileSetupPartial() {
+    MaterialTheme {
+        ProfileSetupContent(
+            firstName = "John",
+            lastName = "",
+            phone = "",
+            isLoading = false,
+            errorMessage = null,
+            onFirstNameChange = {},
+            onLastNameChange = {},
+            onPhoneChange = {},
+            onComplete = {}
+        )
+    }
+}
+
+@Preview(name = "Profile Setup - Complete", showBackground = true)
+@Composable
+private fun PreviewProfileSetupComplete() {
+    MaterialTheme {
+        ProfileSetupContent(
+            firstName = "John",
+            lastName = "Doe",
+            phone = "+201234567890",
+            isLoading = false,
+            errorMessage = null,
+            onFirstNameChange = {},
+            onLastNameChange = {},
+            onPhoneChange = {},
+            onComplete = {}
+        )
+    }
+}
+
+@Preview(name = "Profile Setup - With Error", showBackground = true)
+@Composable
+private fun PreviewProfileSetupError() {
+    MaterialTheme {
+        ProfileSetupContent(
+            firstName = "John",
+            lastName = "",
+            phone = "123",
+            isLoading = false,
+            errorMessage = "Please enter a valid phone number.",
+            onFirstNameChange = {},
+            onLastNameChange = {},
+            onPhoneChange = {},
+            onComplete = {}
+        )
+    }
+}
+
+@Preview(name = "Profile Setup - Loading", showBackground = true)
+@Composable
+private fun PreviewProfileSetupLoading() {
+    MaterialTheme {
+        ProfileSetupContent(
+            firstName = "John",
+            lastName = "Doe",
+            phone = "+201234567890",
+            isLoading = true,
+            errorMessage = null,
+            onFirstNameChange = {},
+            onLastNameChange = {},
+            onPhoneChange = {},
+            onComplete = {}
+        )
     }
 }

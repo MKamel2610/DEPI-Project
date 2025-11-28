@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,13 +20,12 @@ import com.example.ticketway.ui.components.homescreen.BottomNavigationBar
 import com.example.ticketway.ui.screens.AuthScreen
 import com.example.ticketway.ui.screens.BookingHomeScreen
 import com.example.ticketway.ui.screens.ProfileSetupScreen
-import com.example.ticketway.ui.screens.booking.TierSelectionScreen
-import com.example.ticketway.ui.screens.booking.BookingSummaryScreen
+import com.example.ticketway.ui.screens.TierSelectionScreen
+import com.example.ticketway.ui.screens.BookingSummaryScreen
 import com.example.ticketway.ui.screens.MockPaymentScreen
-import com.example.ticketway.ui.screens.profile.ProfileScreen
+import com.example.ticketway.ui.screens.ProfileScreen
 import com.example.ticketway.ui.screens.MyTicketsScreen
 import com.example.ticketway.ui.theme.TicketWayTheme
-import com.example.ticketway.ui.ui.theme.DarkText
 import com.example.ticketway.ui.user.UserViewModel
 import com.example.ticketway.ui.viewmodel.AuthViewModel
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
@@ -39,12 +37,24 @@ import com.example.ticketway.data.model.BookingItem
 import com.example.ticketway.ui.screens.TicketDetailsScreen
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Search
+import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import com.example.ticketway.ui.screens.BookingSummaryScreen
+import com.example.ticketway.ui.screens.ProfileScreen
+import com.example.ticketway.ui.screens.TierSelectionScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    // Inject ViewModels using the delegate (Hilt handles the factory)
     @delegate:RequiresApi(Build.VERSION_CODES.O)
     private val fixturesViewModel: FixturesViewModel by viewModels()
     private val authViewModel: AuthViewModel by viewModels()
@@ -57,8 +67,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         Log.d("MainActivity", "onCreate called")
-
-        // Manual repository and factory initialization is REMOVED due to Hilt
 
         setContent {
             TicketWayTheme {
@@ -84,6 +92,8 @@ fun AppContent(
     bookingViewModel: BookingViewModel,
     myTicketsViewModel: MyTicketsViewModel
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     // Primary navigation states
     var showAuth by remember { mutableStateOf(true) }
     var showAuthModal by remember { mutableStateOf(false) }
@@ -95,15 +105,18 @@ fun AppContent(
     var selectedTicket by remember { mutableStateOf<BookingItem?>(null) }
     var currentTab by remember { mutableStateOf("home") }
 
+    var isSearchActive by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val homeListState = remember { LazyListState() }
+
     val authState by authViewModel.authState.collectAsState()
     val registrationState by authViewModel.registrationState.collectAsState()
 
-    // Initialize: check if user is already logged in.
     LaunchedEffect(Unit) {
         authViewModel.checkUser()
     }
 
-    // Update when auth state changes (FINAL success/failure)
     LaunchedEffect(authState) {
         if (authState == true) {
             showAuth = false
@@ -116,7 +129,6 @@ fun AppContent(
         }
     }
 
-    // Handle transition from AuthScreen to ProfileSetupScreen
     LaunchedEffect(registrationState) {
         if (registrationState == RegistrationStep.AUTH_COMPLETE) {
             showAuth = false
@@ -125,11 +137,9 @@ fun AppContent(
         }
     }
 
-    // Watch for successful save after payment attempt
     val isBookingSuccess by bookingViewModel.isSuccess.collectAsState()
     LaunchedEffect(isBookingSuccess) {
         if (isBookingSuccess) {
-            // Success navigation: Go to My Tickets screen and refresh the list
             showMockPaymentScreen = false
             currentTab = "My Tickets"
             myTicketsViewModel.loadTickets()
@@ -139,11 +149,14 @@ fun AppContent(
 
     // --- Back Stack Management ---
 
-    // The handler should be active if ANY non-home-tab or deep screen is showing.
-    val isCustomBackNavigationActive = showTierSelection || showProfileSetup || showAuthModal || showBookingSummary || showMockPaymentScreen || showTicketDetails || currentTab == "Profile" || currentTab == "My Tickets"
+    val isCustomBackNavigationActive = showTierSelection || showProfileSetup || showAuthModal || showBookingSummary || showMockPaymentScreen || showTicketDetails || isSearchActive || currentTab == "Profile" || currentTab == "My Tickets"
 
     BackHandler(enabled = isCustomBackNavigationActive) {
         when {
+            isSearchActive -> {
+                isSearchActive = false
+                searchQuery = ""
+            }
             // 1. Deep Screen Back Navigation
             showTicketDetails -> {
                 showTicketDetails = false
@@ -201,7 +214,6 @@ fun AppContent(
         MockPaymentScreen(
             viewModel = bookingViewModel,
             onPaymentSuccess = {
-                // Success action handled by LaunchedEffect(isBookingSuccess)
             },
             onPaymentFailure = {
                 showMockPaymentScreen = false
@@ -237,7 +249,7 @@ fun AppContent(
                 showTierSelection = false
             }
         )
-    } else if (showTicketDetails && selectedTicket != null) { // Dedicated view for Ticket Details
+    } else if (showTicketDetails && selectedTicket != null) {
         TicketDetailsScreen(
             booking = selectedTicket!!,
             onBack = {
@@ -249,27 +261,44 @@ fun AppContent(
         // Main Home Screen flow with Bottom Navigation and Shared Header
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            "TicketWay",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DarkText
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = { fixturesViewModel.refresh() }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = DarkText)
+                if (isSearchActive) {
+                    SearchTopBar(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        onSearchClose = {
+                            isSearchActive = false
+                            searchQuery = ""
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-                )
+                    )
+                } else {
+                    // Original Top Bar
+                    TopAppBar(
+                        title = {
+                            Text(
+                                "TicketWay",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        actions = {
+                            IconButton(onClick = { isSearchActive = true }) { // Launch Search Bar
+                                Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurface)
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                    )
+                }
             },
             bottomBar = {
                 BottomNavigationBar(
                     selectedTab = currentTab,
                     onTabSelected = { newTab ->
+                        if (newTab == "home" && currentTab == "home") {
+                            coroutineScope.launch {
+                                homeListState.animateScrollToItem(0)
+                            }
+                        }
                         currentTab = newTab
                         if (newTab == "Profile") {
                             if (authState != true) {
@@ -287,7 +316,7 @@ fun AppContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 when (currentTab) {
                     "home" -> {
@@ -300,7 +329,9 @@ fun AppContent(
                                     bookingViewModel.startBooking(fixture)
                                     showTierSelection = true
                                 }
-                            }
+                            },
+                            listState = homeListState,
+                            searchQuery = searchQuery
                         )
                     }
                     "My Tickets" -> {
@@ -326,16 +357,17 @@ fun AppContent(
         // Auth modal
         if (showAuthModal) {
             ModalBottomSheet(
-                onDismissRequest = { showAuthModal = false }
+                onDismissRequest = { showAuthModal = false },
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
-                    Text(text = if (currentTab == "Profile") "Login Required" else "Booking Requires Login", style = MaterialTheme.typography.headlineSmall)
+                    Text(text = if (currentTab == "Profile") "Login Required" else "Booking Requires Login", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "Please login to continue", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Please login to continue", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 AuthScreen(
@@ -349,6 +381,54 @@ fun AppContent(
                     showSkipButton = false
                 )
                 Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchTopBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearchClose: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .height(56.dp)
+                .padding(end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onSearchClose) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Close Search", tint = MaterialTheme.colorScheme.onSurface)
+            }
+
+            TextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Search by team name...") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
+            )
+
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear Search", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }

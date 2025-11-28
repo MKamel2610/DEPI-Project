@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.screens.booking
+package com.example.ticketway.ui.screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -44,7 +44,6 @@ fun TierSelectionScreen(
 ) {
     val fixture by bookingViewModel.currentFixture.collectAsState()
     val userProfile by userViewModel.profile.collectAsState()
-
     val regCount by bookingViewModel.regularCount.collectAsState()
     val premCount by bookingViewModel.premiumCount.collectAsState()
     val totalTickets by bookingViewModel.totalTickets.collectAsState()
@@ -53,10 +52,9 @@ fun TierSelectionScreen(
 
     val maxTickets = 4
 
-    // Ensure we have data
     if (fixture == null || userProfile == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = PrimaryGreen)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -64,16 +62,16 @@ fun TierSelectionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Tickets", color = DarkText, fontWeight = FontWeight.Bold) },
+                title = { Text("Select Tickets", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = {
                         bookingViewModel.clearBookingState()
                         onBack()
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = DarkText)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = LightGray)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             )
         },
         bottomBar = {
@@ -82,36 +80,35 @@ fun TierSelectionScreen(
                 onNavigateToSummary = onBookingConfirmed
             )
         },
-        modifier = Modifier.fillMaxSize().background(LightGray)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(LightGray)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // 1. Match Info Card
             MatchInfoCard(fixture!!)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. User Info/Limit Banner
             LimitBanner(userProfile!!.name, totalTickets, maxTickets, errorMsg)
 
             if (isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    color = PrimaryGreen
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Tier Selection
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -120,29 +117,23 @@ fun TierSelectionScreen(
                     text = "Select Seating Tier",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
 
-                // Regular Tier
                 TierOptionCard(
                     title = "Regular",
                     price = 100,
                     quantity = regCount,
-                    onQuantityChange = { count ->
-                        bookingViewModel.updateSelection("Regular", count)
-                    },
+                    onQuantityChange = { count -> bookingViewModel.updateSelection("Regular", count) },
                     canIncrease = totalTickets < maxTickets
                 )
 
-                // Premium Tier
                 TierOptionCard(
                     title = "Premium",
                     price = 200,
                     quantity = premCount,
-                    onQuantityChange = { count ->
-                        bookingViewModel.updateSelection("Premium", count)
-                    },
+                    onQuantityChange = { count -> bookingViewModel.updateSelection("Premium", count) },
                     canIncrease = totalTickets < maxTickets
                 )
             }
@@ -152,8 +143,6 @@ fun TierSelectionScreen(
     }
 }
 
-// --- Helper Composables ---
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MatchInfoCard(fixture: FixtureItem) {
@@ -162,54 +151,37 @@ private fun MatchInfoCard(fixture: FixtureItem) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Teams and Logos
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TeamDisplay(fixture.teams.home.name, fixture.teams.home.logo, Alignment.Start)
-                Text("vs", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = LightText)
+                Text(
+                    "vs",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 TeamDisplay(fixture.teams.away.name, fixture.teams.away.logo, Alignment.End)
             }
+
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Venue
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.LocationOn, // FIXED: Using LocationOn Icon
-                    contentDescription = "Venue",
-                    tint = DarkText,
-                    modifier = Modifier.size(18.dp)
-                )
+                Icon(Icons.Default.LocationOn, contentDescription = "Venue", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text(
-                    text = fixture.fixture.venue?.name ?: "Venue TBA",
-                    fontSize = 15.sp,
-                    color = DarkText,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(fixture.fixture.venue?.name ?: "Venue TBA", fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
             }
 
-            // Date and Time Display
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.CalendarToday, // FIXED: Using CalendarToday Icon
-                    contentDescription = "Date",
-                    tint = DarkText,
-                    modifier = Modifier.size(18.dp)
-                )
+                Icon(Icons.Default.CalendarToday, contentDescription = "Date", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text(
-                    text = formatDateTime(fixture.fixture.date),
-                    fontSize = 15.sp,
-                    color = DarkText,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(formatDateTime(fixture.fixture.date), fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -218,14 +190,9 @@ private fun MatchInfoCard(fixture: FixtureItem) {
 @Composable
 private fun TeamDisplay(name: String, logoUrl: String?, alignment: Alignment.Horizontal) {
     Column(horizontalAlignment = alignment) {
-        AsyncImage(
-            model = logoUrl,
-            contentDescription = name,
-            modifier = Modifier.size(48.dp),
-            contentScale = ContentScale.Fit
-        )
+        AsyncImage(model = logoUrl, contentDescription = name, modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DarkText)
+        Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -236,40 +203,23 @@ private fun LimitBanner(userName: String, totalTickets: Int, maxTickets: Int, er
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        color = PrimaryGreen.copy(alpha = 0.1f)
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // User Greeting
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Person, contentDescription = "User", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Person, contentDescription = "User", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text(
-                    text = "Welcome, $userName!",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryGreen
-                )
+                Text("Welcome, $userName!", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Ticket Limit
             val remaining = maxTickets - totalTickets
-            Text(
-                text = "Selected: ${totalTickets} / ${maxTickets} tickets. (${remaining} remaining)",
-                fontSize = 14.sp,
-                color = DarkText
-            )
+            Text("Selected: $totalTickets / $maxTickets tickets. ($remaining remaining)", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
 
-            // Error Message
             if (errorMsg != null) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = errorMsg,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.error,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(errorMsg, fontSize = 13.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Medium)
             }
         }
     }

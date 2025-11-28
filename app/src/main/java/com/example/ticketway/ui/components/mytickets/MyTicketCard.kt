@@ -24,22 +24,21 @@ fun MyTicketCard(booking: BookingItem) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Increased elevation
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // --- Match Header / Color Accent ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(PrimaryGreen.copy(alpha = 0.9f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.9f))
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
                 Text(
                     text = "${booking.homeTeam} vs ${booking.awayTeam}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -51,10 +50,10 @@ fun MyTicketCard(booking: BookingItem) {
                     text = "Status: ${booking.paymentStatus}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (booking.paymentStatus == "PAID") PrimaryGreen else MaterialTheme.colorScheme.error
+                    color = if (booking.paymentStatus == "PAID") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 )
 
-                Divider(color = LightGray, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+                Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp)) // LightGray -> surfaceVariant
 
                 // --- Details Rows ---
                 DetailRow(
@@ -65,7 +64,6 @@ fun MyTicketCard(booking: BookingItem) {
                 DetailRow(
                     icon = Icons.Default.CalendarToday,
                     label = "Time:",
-                    // In a real app, this should be formatted with the 7-day shift. Using raw data for now.
                     value = booking.matchDate
                 )
 
@@ -78,7 +76,7 @@ fun MyTicketCard(booking: BookingItem) {
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("Tickets:", color = DarkText, fontWeight = FontWeight.Medium)
+                        Text("Tickets:", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                         TicketDetailRow(label = "Total Seats:", value = "${booking.seatCount}")
                         if (booking.regularCount > 0) {
                             TicketDetailRow(label = "- Regular:", value = "${booking.regularCount}")
@@ -90,7 +88,7 @@ fun MyTicketCard(booking: BookingItem) {
 
                     // Total Price Box
                     Surface(
-                        color = DarkText,
+                        color = MaterialTheme.colorScheme.onSurface,
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.padding(top = 4.dp)
                     ) {
@@ -100,14 +98,14 @@ fun MyTicketCard(booking: BookingItem) {
                         ) {
                             Text(
                                 "Paid:",
-                                color = Color.White.copy(alpha = 0.7f),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
                                 fontSize = 10.sp
                             )
                             Text(
                                 "EGP ${booking.totalPrice}.00",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.surface
                             )
                         }
                     }
@@ -120,20 +118,20 @@ fun MyTicketCard(booking: BookingItem) {
 @Composable
 private fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
-        Text(label, fontSize = 14.sp, color = DarkText, fontWeight = FontWeight.Medium)
-        Text(value, fontSize = 14.sp, color = LightText)
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
+        Text(value, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun TicketDetailRow(label: String, value: String) {
     Row(
-        modifier = Modifier.padding(start = 18.dp), // Intentional indent
+        modifier = Modifier.padding(start = 18.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, fontSize = 13.sp, color = DarkText.copy(alpha = 0.7f))
-        Text(value, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = LightText)
+        Text(label, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+        Text(value, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

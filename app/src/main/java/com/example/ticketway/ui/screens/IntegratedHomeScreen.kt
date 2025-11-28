@@ -5,11 +5,16 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,41 +22,47 @@ import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import com.example.ticketway.ui.components.*
 import com.example.ticketway.ui.components.homescreen.LeagueFilterRow
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
-import com.example.ticketway.ui.ui.theme.*
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingHomeScreen( // UPDATED: Simplified parameters, removed navigation logic
+fun BookingHomeScreen(
     viewModel: FixturesViewModel,
-    onMatchClick: (FixtureItem) -> Unit = {}
+    onMatchClick: (FixtureItem) -> Unit = {},
+    listState: LazyListState = rememberLazyListState(),
+    searchQuery: String = ""
 ) {
     val fixturesState by viewModel.fixtures.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     var selectedLeagueId by remember { mutableStateOf<Int?>(null) }
 
-    // Scaffold, TopAppBar, and BottomBar REMOVED
+    val pullRefreshState = rememberPullToRefreshState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // Padding removed as it is now applied by the parent Scaffold in MainActivity
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Only render MatchListContent, as tab switching is now handled by AppContent
-        MatchListContent(
-            fixturesState = fixturesState?.response ?: emptyList(),
-            isLoading = isLoading,
-            selectedLeagueId = selectedLeagueId,
-            onLeagueSelected = { selectedLeagueId = it },
-            onMatchClick = onMatchClick
-        )
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refresh() },
+            state = pullRefreshState,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            MatchListContent(
+                fixturesState = fixturesState?.response ?: emptyList(),
+                isLoading = isLoading,
+                selectedLeagueId = selectedLeagueId,
+                onLeagueSelected = { selectedLeagueId = it },
+                onMatchClick = onMatchClick,
+                listState = listState,
+                searchQuery = searchQuery
+            )
+        }
     }
 }
 
-// NEW: Extracted Match List Content Composable
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MatchListContent(
@@ -59,12 +70,14 @@ fun MatchListContent(
     isLoading: Boolean,
     selectedLeagueId: Int?,
     onLeagueSelected: (Int?) -> Unit,
-    onMatchClick: (FixtureItem) -> Unit
+    onMatchClick: (FixtureItem) -> Unit,
+    listState: LazyListState,
+    searchQuery: String
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        state = listState
     ) {
-        // League Filter Chips
         item {
             Spacer(modifier = Modifier.height(8.dp))
             LeagueFilterRow(
@@ -75,7 +88,6 @@ fun MatchListContent(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Loading State
         if (isLoading) {
             item {
                 Box(
@@ -88,10 +100,10 @@ fun MatchListContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        CircularProgressIndicator(color = PrimaryGreen)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Text(
                             "Loading matches...",
-                            color = LightText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp
                         )
                     }
@@ -99,41 +111,44 @@ fun MatchListContent(
             }
         }
 
-        // Matches grouped by league
         if (!isLoading) {
-            val filteredFixtures = if (selectedLeagueId != null) {
+            val leagueFilteredFixtures = if (selectedLeagueId != null) {
                 fixturesState.filter { it.league.id == selectedLeagueId }
             } else {
                 fixturesState
             }
 
+            val filteredFixtures = if (searchQuery.isNotBlank()) {
+                leagueFilteredFixtures.filter { fixture ->
+                    val query = searchQuery.trim()
+                    fixture.teams.home.name.contains(query, ignoreCase = true) ||
+                            fixture.teams.away.name.contains(query, ignoreCase = true)
+                }
+            } else {
+                leagueFilteredFixtures
+            }
+
             val groupedFixtures = filteredFixtures.groupBy { it.league.id }
 
             if (groupedFixtures.isEmpty()) {
-                item {
-                    NoMatchesContent()
-                }
+                item { NoMatchesContent() }
             } else {
                 groupedFixtures.forEach { (_, leagueFixtures) ->
                     item {
                         BookingLeagueSection(
                             fixtures = leagueFixtures,
                             onMatchClick = onMatchClick,
-                            onLeagueClick = { /* TODO: Navigate to league details */ }
+                            onLeagueClick = { }
                         )
                     }
                 }
             }
         }
 
-        // Bottom spacing
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
 
-// NEW: Extracted placeholder for "My Tickets"
 @Composable
 fun EmptyTicketsContent() {
     Box(
@@ -143,27 +158,23 @@ fun EmptyTicketsContent() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "🎟️",
-                fontSize = 64.sp
-            )
+            Text("🎟️", fontSize = 64.sp)
             Text(
                 text = "No Tickets Booked Yet",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "Book a match to see your tickets here.",
                 fontSize = 14.sp,
-                color = LightText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
 }
 
-// NEW: Extracted placeholder for "No Matches"
 @Composable
 fun NoMatchesContent() {
     Box(
@@ -176,20 +187,17 @@ fun NoMatchesContent() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Text("⚽", fontSize = 64.sp)
             Text(
-                "⚽",
-                fontSize = 64.sp
-            )
-            Text(
-                "No matches available",
+                text = "No matches available",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                "Check back later for upcoming fixtures",
+                text = "Check back later for upcoming fixtures",
                 fontSize = 14.sp,
-                color = LightText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

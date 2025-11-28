@@ -2,6 +2,7 @@ package com.example.ticketway.ui.components
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons // NEW Import
@@ -19,7 +20,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.example.ticketway.ui.ui.theme.*
 import java.time.ZoneId
@@ -33,15 +33,17 @@ fun BookingMatchCard(
     isAvailable: Boolean,
     onBookClick: () -> Unit
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(8.dp),
-        color = Color.White,
-        tonalElevation = 1.dp,
-        shadowElevation = 2.dp
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 3.dp
     ) {
         Row(
             modifier = Modifier
@@ -56,7 +58,6 @@ fun BookingMatchCard(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Logos on top - each end of the card
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -79,7 +80,6 @@ fun BookingMatchCard(
                     )
                 }
 
-                // Team names with "vs" - centered
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -89,7 +89,7 @@ fun BookingMatchCard(
                         text = fixture.teams.home.name,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkText,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.End,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -100,7 +100,7 @@ fun BookingMatchCard(
                         text = " vs ",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LightText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
@@ -108,7 +108,7 @@ fun BookingMatchCard(
                         text = fixture.teams.away.name,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkText,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -120,7 +120,7 @@ fun BookingMatchCard(
                 Text(
                     text = formatDateTime(fixture.fixture.date),
                     fontSize = 14.sp,
-                    color = MediumText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
 
@@ -129,17 +129,16 @@ fun BookingMatchCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    // FIXED: Replaced emoji with Icon
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = "Venue",
-                        tint = DarkText, // Assuming DarkText is the desired tint color
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = fixture.fixture.venue?.name?.takeIf { it.isNotBlank() } ?: "Venue TBA",
                         fontSize = 13.sp,
-                        color = LightText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -161,18 +160,18 @@ fun BookingMatchCard(
                     Text(
                         text = "${fixture.league.name} • ${fixture.league.country}",
                         fontSize = 11.sp,
-                        color = LightText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
-            // Book button - matches card height exactly
+            // Book button
             Surface(
                 onClick = onBookClick,
                 enabled = isAvailable,
-                color = if (isAvailable) PrimaryGreen else Color.Gray.copy(alpha = 0.3f),
+                color = if (isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(
                     topStart = 0.dp,
                     topEnd = 8.dp,
@@ -187,11 +186,13 @@ fun BookingMatchCard(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
+                    val soldOutColor = if (isDarkTheme) DarkSoldOut else Color.White
+
                     Text(
                         text = if (isAvailable) "Book" else "Sold\nOut",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = if (isAvailable) MaterialTheme.colorScheme.onPrimary else soldOutColor,
                         textAlign = TextAlign.Center,
                         lineHeight = 18.sp
                     )
@@ -204,13 +205,10 @@ fun BookingMatchCard(
 @RequiresApi(Build.VERSION_CODES.O)
 private fun formatDateTime(dateTimeString: String): String {
     return try {
-        // 1. Parse API string as UTC ZonedDateTime
         val dateTimeUtc = ZonedDateTime.parse(dateTimeString, DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneId.of("UTC")))
 
-        // 2. SHIFT THE DATE FORWARD BY 7 DAYS for display realism
         val shiftedDateTimeUtc = dateTimeUtc.plusDays(7)
 
-        // 3. Convert the shifted time to the local time zone for display
         val localDateTime = shiftedDateTimeUtc.withZoneSameInstant(ZoneId.systemDefault())
 
         localDateTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy • HH:mm"))

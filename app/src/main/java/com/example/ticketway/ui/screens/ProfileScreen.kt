@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.screens.profile
+package com.example.ticketway.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -43,7 +43,6 @@ fun ProfileScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // State for editable fields (hoisted from ViewModel data)
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
 
@@ -62,68 +61,62 @@ fun ProfileScreen(
         }
     }
 
-    // Relying on parent Scaffold for padding and white background
     val showLoading = isLoading && profileState == null
 
     if (showLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = PrimaryGreen)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     } else if (profileState != null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 24.dp), // Added top/bottom padding
+                .padding(horizontal = 24.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // --- Header/Avatar ---
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .background(PrimaryGreen.copy(alpha = 0.1f), RoundedCornerShape(60.dp)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(60.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Person,
                     contentDescription = "User Avatar",
                     modifier = Modifier.size(80.dp),
-                    tint = PrimaryGreen
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Title for context (Removed TopAppBar so adding title here)
             Text(
                 text = "My Profile",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = DarkText
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Profile Card/Fields ---
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    // --- Email (Read-only) ---
                     ProfileTextField(
                         value = profileState!!.email,
                         label = "Email",
                         icon = Icons.Default.Email,
                         readOnly = true,
-                        iconTint = LightText
+                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // --- Name (Editable) ---
                     ProfileTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -135,7 +128,6 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // --- Phone (Editable) ---
                     ProfileTextField(
                         value = phone,
                         onValueChange = { phone = it.filter { it.isDigit() || it == '+' } },
@@ -148,8 +140,6 @@ fun ProfileScreen(
                 }
             }
 
-
-            // --- Error Message ---
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -161,11 +151,9 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Save Button ---
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    // Simplified logic: If we have profile data, attempt update
                     if (profileState != null) {
                         viewModel.updateUserProfile(
                             updatedProfile = UserProfile(
@@ -173,9 +161,7 @@ fun ProfileScreen(
                                 name = name.trim(),
                                 phone = phone.trim()
                             ),
-                            onComplete = { success ->
-                                if (success) onBack()
-                            }
+                            onComplete = { success -> if (success) onBack() }
                         )
                     }
                 },
@@ -183,35 +169,38 @@ fun ProfileScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = !isLoading && name.isNotBlank() && phone.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
-                    Text(text = "Save Profile", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "Save Profile", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Logout Button ---
             OutlinedButton(
                 onClick = onLogout,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, LightText),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)),
                 enabled = !isLoading
             ) {
-                Text(text = "Logout", fontSize = 16.sp, color = LightText, fontWeight = FontWeight.Medium)
+                Text(
+                    text = "Logout",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+                    fontWeight = FontWeight.Medium
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
         }
     } else {
-        // Show an error/retry button if loading finished but profile is still null
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -227,7 +216,6 @@ fun ProfileScreen(
     }
 }
 
-// Helper Composable for clean TextField design
 @Composable
 fun ProfileTextField(
     value: String,
@@ -238,7 +226,7 @@ fun ProfileTextField(
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    iconTint: Color = PrimaryGreen
+    iconTint: Color = MaterialTheme.colorScheme.primary
 ) {
     OutlinedTextField(
         value = value,
@@ -253,9 +241,13 @@ fun ProfileTextField(
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = PrimaryGreen,
-            unfocusedBorderColor = LightText.copy(alpha = 0.5f),
-            disabledBorderColor = LightText.copy(alpha = 0.5f)
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            disabledBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            disabledTextColor = MaterialTheme.colorScheme.onSurface
         )
     )
 }

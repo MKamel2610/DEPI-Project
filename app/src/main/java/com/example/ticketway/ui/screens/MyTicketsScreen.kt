@@ -40,20 +40,19 @@ fun MyTicketsScreen(
     }
 
     Scaffold(
-        containerColor = LightGray // Change screen background to LightGray
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // New colorful header
             TicketsHeader(ticketCount = tickets.size)
 
             when {
                 isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = PrimaryGreen)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
                 tickets.isNotEmpty() -> {
@@ -69,29 +68,33 @@ fun MyTicketsScreen(
                     }
                 }
                 else -> {
-                    // Empty State
-                    Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "🎟️",
-                                fontSize = 64.sp
-                            )
+                            Text("🎟️", fontSize = 64.sp)
                             Text(
                                 text = "No Tickets Found",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = DarkText
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = errorMessage ?: "Book a match to see your tickets here once payment is successful.",
                                 fontSize = 14.sp,
-                                color = LightText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
 
                             if (errorMessage != null) {
-                                Button(onClick = { viewModel.loadTickets() }, modifier = Modifier.padding(top = 16.dp)) {
+                                Button(
+                                    onClick = { viewModel.loadTickets() },
+                                    modifier = Modifier.padding(top = 16.dp)
+                                ) {
                                     Text("Retry Loading")
                                 }
                             }
@@ -110,12 +113,11 @@ fun TicketsHeader(ticketCount: Int) {
             .fillMaxWidth()
             .padding(16.dp),
         shape = RoundedCornerShape(12.dp),
-        color = PrimaryGreen,
+        color = MaterialTheme.colorScheme.primary,
         shadowElevation = 4.dp
     ) {
         Row(
-            modifier = Modifier
-                .padding(20.dp),
+            modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -124,13 +126,13 @@ fun TicketsHeader(ticketCount: Int) {
                     text = "Your Bookings",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "$ticketCount active ticket${if (ticketCount != 1) "s" else ""}",
                     fontSize = 14.sp,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
             }
             Text(

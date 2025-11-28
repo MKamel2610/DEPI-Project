@@ -30,7 +30,7 @@ fun TierOptionCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         // Visual cue if tickets are selected in this tier
-        border = BorderStroke(1.dp, if (quantity > 0) PrimaryGreen else MaterialTheme.colorScheme.surfaceVariant)
+        border = BorderStroke(1.dp, if (quantity > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
@@ -45,13 +45,13 @@ fun TierOptionCard(
                     text = "$title Tier",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onSurface // DarkText -> onSurface
                 )
                 Text(
                     text = "EGP $price",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = PrimaryGreen
+                    color = MaterialTheme.colorScheme.primary // PrimaryGreen -> primary
                 )
             }
 
@@ -65,8 +65,8 @@ fun TierOptionCard(
                     onClick = { onQuantityChange(quantity - 1) },
                     enabled = quantity > 0,
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = PrimaryGreen,
-                        disabledContentColor = LightText
+                        contentColor = MaterialTheme.colorScheme.primary, // PrimaryGreen -> primary
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) // LightText -> onSurfaceVariant
                     )
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Decrease")
@@ -77,7 +77,7 @@ fun TierOptionCard(
                     text = quantity.toString(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onSurface // DarkText -> onSurface
                 )
 
                 // Increase Button
@@ -85,8 +85,8 @@ fun TierOptionCard(
                     onClick = { onQuantityChange(quantity + 1) },
                     enabled = canIncrease,
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = PrimaryGreen,
-                        disabledContentColor = LightText
+                        contentColor = MaterialTheme.colorScheme.primary, // PrimaryGreen -> primary
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) // LightText -> onSurfaceVariant
                     )
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Increase")

@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-// --- FIXED: Added specific imports for all used icons ---
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Circle
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.filled.Star
-// --------------------------------------------------------
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,13 +35,11 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// Helper data class for organizing details
 private data class TicketDetail(
     val icon: ImageVector,
     val label: String,
-    // --- FIXED: Renamed from 'getValue' to 'valueExtractor' to avoid operator conflict
     val valueExtractor: (BookingItem) -> String,
-    val valueColor: (BookingItem) -> Color = { DarkText }
+    val valueColor: ((BookingItem) -> Color)? = null
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -53,8 +49,6 @@ fun TicketDetailsScreen(
     booking: BookingItem,
     onBack: () -> Unit
 ) {
-    // --- Data Definitions ---
-
     val matchDetails = listOf(
         TicketDetail(
             icon = Icons.Default.SportsSoccer,
@@ -96,20 +90,19 @@ fun TicketDetailsScreen(
         )
     )
 
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ticket Details", color = DarkText) },
+                title = { Text("Ticket Details", color = MaterialTheme.colorScheme.onSurface) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkText)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -122,11 +115,10 @@ fun TicketDetailsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Booking Reference Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -138,91 +130,93 @@ fun TicketDetailsScreen(
                     Text(
                         "Booking Reference:",
                         fontSize = 14.sp,
-                        color = DarkText.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         booking.bookingId.uppercase(Locale.ROOT),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = PrimaryGreen
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "Payment Status: ${booking.paymentStatus}",
                         fontSize = 12.sp,
-                        color = if (booking.paymentStatus == "PENDING") MaterialTheme.colorScheme.error else PrimaryGreen
+                        color = if (booking.paymentStatus == "PENDING") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 1. Match Details Card
             DetailsCard {
                 matchDetails.forEachIndexed { index, detail ->
                     if (index > 0) {
-                        Divider(color = LightGray, thickness = 1.dp)
+                        Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
                     }
                     DetailRow(
                         icon = detail.icon,
                         label = detail.label,
-                        // --- FIXED: Using the new name 'valueExtractor'
                         value = detail.valueExtractor(booking),
-                        valueColor = detail.valueColor(booking)
+                        valueColor = detail.valueColor?.invoke(booking) ?: MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. Ticket Breakdown Card
             DetailsCard {
                 Text(
                     "Ticket Breakdown",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
                 )
-                Divider(color = LightGray, thickness = 1.dp)
+                Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
                 if (booking.regularCount > 0) {
                     DetailRow(
                         icon = Icons.Default.Circle,
                         label = "Regular Tier",
                         value = "${booking.regularCount} Tickets",
-                        valueColor = DarkText
+                        valueColor = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 if (booking.premiumCount > 0) {
-                    if (booking.regularCount > 0) Divider(color = LightGray, thickness = 1.dp)
+                    if (booking.regularCount > 0) Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
                     DetailRow(
                         icon = Icons.Default.Star,
                         label = "Premium Tier",
                         value = "${booking.premiumCount} Tickets",
-                        valueColor = DarkText
+                        valueColor = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Divider(color = LightGray, thickness = 1.dp)
-                ticketDetails.forEachIndexed { index, detail ->
+                Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                ticketDetails.forEach { detail ->
+                    val color = if (detail.label == "Total Paid") {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        detail.valueColor?.invoke(booking) ?: MaterialTheme.colorScheme.onSurface
+                    }
+
                     DetailRow(
                         icon = detail.icon,
                         label = detail.label,
-                        // --- FIXED: Using the new name 'valueExtractor'
                         value = detail.valueExtractor(booking),
-                        valueColor = if (detail.label == "Total Paid") PrimaryGreen else detail.valueColor(booking)
+                        valueColor = color
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Call to Action
             Button(
                 onClick = { /* TODO */ },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.QrCode2, contentDescription = "View QR Code", modifier = Modifier.size(24.dp))
@@ -235,26 +229,24 @@ fun TicketDetailsScreen(
     }
 }
 
-// Helper Composable for consistent card styling
 @Composable
 fun DetailsCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(vertical = 8.dp), content = content)
     }
 }
 
-// Helper Composable for detail rows
 @Composable
 fun DetailRow(
     icon: ImageVector,
     label: String,
     value: String,
-    valueColor: Color = DarkText
+    valueColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = Modifier
@@ -264,8 +256,8 @@ fun DetailRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(icon, contentDescription = label, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
-            Text(label, fontSize = 14.sp, color = DarkText.copy(alpha = 0.7f))
+            Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
         }
         Text(
             value,

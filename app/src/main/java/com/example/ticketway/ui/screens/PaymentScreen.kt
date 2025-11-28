@@ -1,5 +1,3 @@
-@file:JvmName("PaymentScreenKt")
-
 package com.example.ticketway.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -58,16 +56,16 @@ fun MockPaymentScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Payment Gateway", color = DarkText, fontWeight = FontWeight.Bold) },
+                title = { Text("Payment Gateway", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Close Payment", tint = DarkText)
+                        Icon(Icons.Default.Close, contentDescription = "Close Payment", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = LightGray)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             )
         },
-        containerColor = LightGray
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -81,26 +79,31 @@ fun MockPaymentScreen(
                 text = "PAY EGP ${totalPrice}.00",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = PrimaryGreen,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // --- Card Inputs ---
             OutlinedTextField(
                 value = cardNumber,
                 onValueChange = { cardNumber = it.filter { it.isDigit() }.take(16) },
                 label = { Text("Card Number") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Expiry Date
                 OutlinedTextField(
                     value = expirationDate,
                     onValueChange = { expirationDate = it.filter { it.isDigit() || it == '/' }.take(5) },
@@ -109,9 +112,16 @@ fun MockPaymentScreen(
                     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Right) }),
                     singleLine = true,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-                // CVV
+
                 OutlinedTextField(
                     value = cvv,
                     onValueChange = { cvv = it.filter { it.isDigit() }.take(3) },
@@ -120,7 +130,14 @@ fun MockPaymentScreen(
                     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     singleLine = true,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -133,10 +150,16 @@ fun MockPaymentScreen(
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
 
-            // Error Display
             if (localError != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(localError!!, color = MaterialTheme.colorScheme.error)
@@ -144,7 +167,6 @@ fun MockPaymentScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // --- Pay Button (Always returns success) ---
             Button(
                 onClick = {
                     if (cardNumber.length != 16) {
@@ -164,7 +186,7 @@ fun MockPaymentScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
