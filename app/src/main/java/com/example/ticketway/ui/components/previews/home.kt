@@ -5,8 +5,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ticketway.data.network.model.common.League
-import com.example.ticketway.ui.components.BookingLeagueSection
-import com.example.ticketway.ui.components.BookingMatchCard
+import com.example.ticketway.ui.components.homescreen.BookingLeagueSection
+import com.example.ticketway.ui.components.homescreen.BookingMatchCard
 import com.example.ticketway.ui.components.homescreen.BottomNavigationBar
 import com.example.ticketway.ui.components.homescreen.LeagueFilterRow
 import com.example.ticketway.ui.components.homescreen.mock.mockFixtureDetails

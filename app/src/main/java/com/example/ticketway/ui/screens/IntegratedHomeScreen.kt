@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -20,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ticketway.data.network.model.fixtures.FixtureItem
 import com.example.ticketway.ui.components.*
+import com.example.ticketway.ui.components.homescreen.BookingLeagueSection
 import com.example.ticketway.ui.components.homescreen.LeagueFilterRow
 import com.example.ticketway.ui.viewmodel.FixturesViewModel
 
@@ -158,7 +162,12 @@ fun EmptyTicketsContent() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("🎟️", fontSize = 64.sp)
+            Icon( // Replaced emoji
+                Icons.Default.ConfirmationNumber,
+                contentDescription = "No Tickets Icon",
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Text(
                 text = "No Tickets Booked Yet",
                 fontSize = 20.sp,
@@ -187,7 +196,12 @@ fun NoMatchesContent() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("⚽", fontSize = 64.sp)
+            Icon( // Replaced emoji
+                Icons.Default.SportsSoccer,
+                contentDescription = "No Matches Icon",
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Text(
                 text = "No matches available",
                 fontSize = 18.sp,

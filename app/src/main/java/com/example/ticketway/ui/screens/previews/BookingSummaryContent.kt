@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.screens.booking.previews
+package com.example.ticketway.ui.screens.previews
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -22,8 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-// Mock data classes for preview
-private data class PreviewFixture(
+data class PreviewFixture(
     val homeTeam: String,
     val awayTeam: String,
     val homeLogo: String?,
@@ -34,22 +33,21 @@ private data class PreviewFixture(
 
 private const val REGULAR_PRICE = 100
 private const val PREMIUM_PRICE = 200
-private const val VAT_RATE = 0.14
+private const val VAT_RATE = 0.0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun BookingSummaryContent(
-    fixture: PreviewFixture,
+fun BookingSummaryContent(
+    fixture: PreviewFixture?,
     regCount: Int,
     premCount: Int,
+    subtotal: Double,
+    vatAmount: Double,
+    total: Double,
     onBack: () -> Unit,
     onProceedToPayment: () -> Unit
 ) {
-    val subtotal = ((regCount * REGULAR_PRICE) + (premCount * PREMIUM_PRICE)).toDouble()
-    val vatAmount = subtotal * VAT_RATE
-    val total = subtotal + vatAmount
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -82,6 +80,17 @@ private fun BookingSummaryContent(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
+        if (fixture == null) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text(
+                    "Error: No booking data found.",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -91,12 +100,10 @@ private fun BookingSummaryContent(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Match Details Card
             MatchSummaryCard(fixture)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Ticket Details Card
             TicketDetailsCard(
                 regCount = regCount,
                 premCount = premCount,
@@ -132,7 +139,6 @@ private fun MatchSummaryCard(fixture: PreviewFixture) {
             )
             Divider(color = MaterialTheme.colorScheme.surfaceVariant)
 
-            // Teams
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -331,6 +337,8 @@ private fun SummaryBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                // FIX: Apply windowInsetsPadding for the navigation bar
+                .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -360,7 +368,7 @@ private fun SummaryBottomBar(
                 )
             ) {
                 Text(
-                    text = "Procede to Payment",
+                    text = "Proceed to Payment", // Fixed typo "Procede" -> "Proceed"
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -371,24 +379,35 @@ private fun SummaryBottomBar(
     }
 }
 
+
 // ==================== Previews ====================
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(name = "Booking Summary - Regular Only", showBackground = true)
 @Composable
 private fun PreviewBookingSummaryRegularOnly() {
+    val fixture = PreviewFixture(
+        homeTeam = "Arsenal",
+        awayTeam = "Chelsea",
+        homeLogo = null,
+        awayLogo = null,
+        venue = "Emirates Stadium",
+        dateTime = "Dec 15, 2024 • 19:30"
+    )
+    val regCount = 2
+    val premCount = 0
+    val subtotal = ((regCount * REGULAR_PRICE) + (premCount * PREMIUM_PRICE)).toDouble()
+    val vatAmount = subtotal * VAT_RATE
+    val total = subtotal + vatAmount
+
     MaterialTheme {
         BookingSummaryContent(
-            fixture = PreviewFixture(
-                homeTeam = "Arsenal",
-                awayTeam = "Chelsea",
-                homeLogo = null,
-                awayLogo = null,
-                venue = "Emirates Stadium",
-                dateTime = "Dec 15, 2024 • 19:30"
-            ),
-            regCount = 2,
-            premCount = 0,
+            fixture = fixture,
+            regCount = regCount,
+            premCount = premCount,
+            subtotal = subtotal,
+            vatAmount = vatAmount,
+            total = total,
             onBack = {},
             onProceedToPayment = {}
         )
@@ -399,18 +418,28 @@ private fun PreviewBookingSummaryRegularOnly() {
 @Preview(name = "Booking Summary - Premium Only", showBackground = true)
 @Composable
 private fun PreviewBookingSummaryPremiumOnly() {
+    val fixture = PreviewFixture(
+        homeTeam = "Manchester United",
+        awayTeam = "Liverpool",
+        homeLogo = null,
+        awayLogo = null,
+        venue = "Old Trafford",
+        dateTime = "Dec 20, 2024 • 16:00"
+    )
+    val regCount = 0
+    val premCount = 2
+    val subtotal = ((regCount * REGULAR_PRICE) + (premCount * PREMIUM_PRICE)).toDouble()
+    val vatAmount = subtotal * VAT_RATE
+    val total = subtotal + vatAmount
+
     MaterialTheme {
         BookingSummaryContent(
-            fixture = PreviewFixture(
-                homeTeam = "Manchester United",
-                awayTeam = "Liverpool",
-                homeLogo = null,
-                awayLogo = null,
-                venue = "Old Trafford",
-                dateTime = "Dec 20, 2024 • 16:00"
-            ),
-            regCount = 0,
-            premCount = 2,
+            fixture = fixture,
+            regCount = regCount,
+            premCount = premCount,
+            subtotal = subtotal,
+            vatAmount = vatAmount,
+            total = total,
             onBack = {},
             onProceedToPayment = {}
         )
@@ -421,18 +450,28 @@ private fun PreviewBookingSummaryPremiumOnly() {
 @Preview(name = "Booking Summary - Mixed Tickets", showBackground = true)
 @Composable
 private fun PreviewBookingSummaryMixed() {
+    val fixture = PreviewFixture(
+        homeTeam = "Real Madrid",
+        awayTeam = "Barcelona",
+        homeLogo = null,
+        awayLogo = null,
+        venue = "Santiago Bernabéu",
+        dateTime = "Jan 05, 2025 • 21:00"
+    )
+    val regCount = 2
+    val premCount = 2
+    val subtotal = ((regCount * REGULAR_PRICE) + (premCount * PREMIUM_PRICE)).toDouble()
+    val vatAmount = subtotal * VAT_RATE
+    val total = subtotal + vatAmount
+
     MaterialTheme {
         BookingSummaryContent(
-            fixture = PreviewFixture(
-                homeTeam = "Real Madrid",
-                awayTeam = "Barcelona",
-                homeLogo = null,
-                awayLogo = null,
-                venue = "Santiago Bernabéu",
-                dateTime = "Jan 05, 2025 • 21:00"
-            ),
-            regCount = 2,
-            premCount = 2,
+            fixture = fixture,
+            regCount = regCount,
+            premCount = premCount,
+            subtotal = subtotal,
+            vatAmount = vatAmount,
+            total = total,
             onBack = {},
             onProceedToPayment = {}
         )
@@ -443,18 +482,28 @@ private fun PreviewBookingSummaryMixed() {
 @Preview(name = "Booking Summary - Max Tickets", showBackground = true)
 @Composable
 private fun PreviewBookingSummaryMaxTickets() {
+    val fixture = PreviewFixture(
+        homeTeam = "Bayern Munich",
+        awayTeam = "Borussia Dortmund",
+        homeLogo = null,
+        awayLogo = null,
+        venue = "Allianz Arena",
+        dateTime = "Jan 12, 2025 • 18:30"
+    )
+    val regCount = 4
+    val premCount = 0
+    val subtotal = ((regCount * REGULAR_PRICE) + (premCount * PREMIUM_PRICE)).toDouble()
+    val vatAmount = subtotal * VAT_RATE
+    val total = subtotal + vatAmount
+
     MaterialTheme {
         BookingSummaryContent(
-            fixture = PreviewFixture(
-                homeTeam = "Bayern Munich",
-                awayTeam = "Borussia Dortmund",
-                homeLogo = null,
-                awayLogo = null,
-                venue = "Allianz Arena",
-                dateTime = "Jan 12, 2025 • 18:30"
-            ),
-            regCount = 4,
-            premCount = 0,
+            fixture = fixture,
+            regCount = regCount,
+            premCount = premCount,
+            subtotal = subtotal,
+            vatAmount = vatAmount,
+            total = total,
             onBack = {},
             onProceedToPayment = {}
         )

@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.components
+package com.example.ticketway.ui.components.homescreen
 
 import android.os.Build
 import androidx.annotation.RequiresApi

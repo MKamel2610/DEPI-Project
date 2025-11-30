@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.components
+package com.example.ticketway.ui.components.mytickets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

@@ -5,7 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ticketway.data.model.BookingItem
-import com.example.ticketway.ui.components.MyTicketCard
+import com.example.ticketway.ui.components.mytickets.MyTicketCard
 import com.example.ticketway.ui.theme.TicketWayTheme
 
 

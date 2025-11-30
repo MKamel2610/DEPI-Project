@@ -1,35 +1,17 @@
 package com.example.ticketway.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ticketway.ui.viewmodel.AuthViewModel
-import com.example.ticketway.ui.ui.theme.*
-
+// Import the stateless content
+import com.example.ticketway.ui.screens.previews.ProfileSetupContent as StatelessProfileSetupContent
 
 @Composable
 fun ProfileSetupScreen(
     viewModel: AuthViewModel,
     onSetupComplete: () -> Unit
 ) {
+    // 1. Local UI State (Hoisted State)
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -38,158 +20,72 @@ fun ProfileSetupScreen(
 
     val focusManager = LocalFocusManager.current
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Personal Details",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+    // 2. Derived State for Button Enablement
+    val isFormValid = remember(firstName, lastName, phone) {
+        val fullName = "$firstName $lastName".trim()
+        val digitsOnlyPhone = phone.filter { it.isDigit() }
 
-            Text(
-                text = "Just a few more details to complete your account.",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 40.dp)
-            )
+        fullName.isNotBlank() && digitsOnlyPhone.length >= 7
+    }
 
-            // First Name Field
-            OutlinedTextField(
-                value = firstName,
-                onValueChange = {
-                    firstName = it
-                    errorMessage = null
-                },
-                label = { Text("First Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "First Name", tint = MaterialTheme.colorScheme.primary) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                enabled = !isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                )
-            )
+    val isButtonEnabled = isFormValid && !isLoading
 
-            Spacer(modifier = Modifier.height(16.dp))
+    // 3. Action Logic (Validation + ViewModel Call)
+    val onComplete: () -> Unit = {
+        focusManager.clearFocus()
+        val fullName = "$firstName $lastName".trim()
+        val digitsOnlyPhone = phone.filter { it.isDigit() }
 
-            // Last Name Field
-            OutlinedTextField(
-                value = lastName,
-                onValueChange = {
-                    lastName = it
-                    errorMessage = null
-                },
-                label = { Text("Last Name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Last Name", tint = MaterialTheme.colorScheme.primary) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                enabled = !isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                )
-            )
+        // --- FIX: Replace return@onComplete with conditional logic ---
+        // Local Validation
+        if (fullName.isBlank() || phone.isBlank()) {
+            errorMessage = "Please enter your full name and phone number."
+        } else if (digitsOnlyPhone.length < 7) {
+            errorMessage = "Please enter a valid phone number (at least 7 digits)."
+        } else {
+            // If validation passes, proceed to API call
+            errorMessage = null
+            isLoading = true
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Phone Field
-            OutlinedTextField(
-                value = phone,
-                onValueChange = {
-                    phone = it.filter { it.isDigit() }
-                    errorMessage = null
-                },
-                label = { Text("Phone Number") },
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = "Phone", tint = MaterialTheme.colorScheme.primary) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                enabled = !isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                )
-            )
-
-            if (errorMessage != null) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 13.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Complete Setup Button
-            Button(
-                onClick = {
-                    focusManager.clearFocus()
-                    val fullName = "$firstName $lastName".trim()
-
-                    if (fullName.isBlank() || phone.isBlank()) {
-                        errorMessage = "Please enter your full name and phone number."
-                        return@Button
-                    }
-                    if (phone.filter { it.isDigit() }.length < 7) {
-                        errorMessage = "Please enter a valid phone number."
-                        return@Button
-                    }
-
-                    isLoading = true
-                    viewModel.updateUserProfile(fullName, phone) { success ->
-                        isLoading = false
-                        if (success) {
-                            onSetupComplete()
-                        } else {
-                            errorMessage = "Failed to save profile. Please try again."
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            viewModel.updateUserProfile(fullName, phone) { success ->
+                isLoading = false
+                if (success) {
+                    onSetupComplete()
                 } else {
-                    Text(text = "Complete Setup", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    errorMessage = "Failed to save profile. Please try again."
                 }
             }
         }
     }
+
+    // 4. Input Handler Functions (Set state and clear error)
+    val onFirstNameChange: (String) -> Unit = {
+        firstName = it
+        errorMessage = null
+    }
+
+    val onLastNameChange: (String) -> Unit = {
+        lastName = it
+        errorMessage = null
+    }
+
+    val onPhoneChange: (String) -> Unit = {
+        // Original code filtered out non-digits; we will keep that logic here
+        phone = it.filter { char -> char.isDigit() || char == '+' }
+        errorMessage = null
+    }
+
+    // 5. Call Stateless Content
+    StatelessProfileSetupContent(
+        firstName = firstName,
+        lastName = lastName,
+        phone = phone,
+        isLoading = isLoading,
+        errorMessage = errorMessage,
+        isButtonEnabled = isButtonEnabled,
+        onFirstNameChange = onFirstNameChange,
+        onLastNameChange = onLastNameChange,
+        onPhoneChange = onPhoneChange,
+        onComplete = onComplete
+    )
 }

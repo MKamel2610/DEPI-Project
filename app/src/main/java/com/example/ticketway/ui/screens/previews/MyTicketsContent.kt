@@ -1,11 +1,14 @@
 package com.example.ticketway.ui.screens.previews
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ConfirmationNumber // Imported necessary icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,9 +18,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.background
 
-// Mock data class for preview
-private data class PreviewBooking(
+// Mock data class for preview (Public for MyTicketsScreen to map data)
+data class PreviewBooking(
     val bookingId: String,
     val homeTeam: String,
     val awayTeam: String,
@@ -26,10 +31,12 @@ private data class PreviewBooking(
     val seatCount: Int,
     val totalPrice: Int,
     val paymentStatus: String
+    // NOTE: This PreviewBooking lacks regularCount and premiumCount needed for the detailed card.
+    // Assuming for now seatCount = total, but in a real app, PreviewBooking should be updated.
 )
 
 @Composable
-private fun MyTicketsContent(
+fun MyTicketsContent(
     tickets: List<PreviewBooking>,
     isLoading: Boolean,
     errorMessage: String?,
@@ -63,7 +70,7 @@ private fun MyTicketsContent(
                     ) {
                         items(tickets) { booking ->
                             Box(modifier = Modifier.clickable { onTicketClick(booking) }) {
-                                TicketCard(booking)
+                                DetailedTicketCard(booking) // Use the new detailed card
                             }
                         }
                     }
@@ -76,7 +83,12 @@ private fun MyTicketsContent(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "🎟️", fontSize = 64.sp)
+                            Icon( // Replaced emoji
+                                Icons.Default.ConfirmationNumber,
+                                contentDescription = "No Tickets Icon",
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             Text(
                                 text = "No Tickets Found",
                                 fontSize = 20.sp,
@@ -107,6 +119,135 @@ private fun MyTicketsContent(
     }
 }
 
+// Replicating the detailed structure from MyTicketCard.kt, adapted for PreviewBooking
+
+@Composable
+private fun DetailedTicketCard(booking: PreviewBooking) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // 1. Header Box
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.9f))
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = "${booking.homeTeam} vs ${booking.awayTeam}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            // 2. Details & Price
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                // Status Indicator
+                Text(
+                    text = "Status: ${booking.paymentStatus}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (booking.paymentStatus == "PAID") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+
+                Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+
+                // Details Rows
+                CardDetailRow(
+                    icon = Icons.Default.LocationOn,
+                    label = "Stadium:",
+                    value = booking.stadiumName
+                )
+                CardDetailRow(
+                    icon = Icons.Default.CalendarToday,
+                    label = "Time:",
+                    value = booking.matchDate
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Tickets Summary & Price
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Tickets:", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
+                        CardTicketDetailRow(label = "Total Seats:", value = "${booking.seatCount}")
+
+                        // NOTE: Since PreviewBooking lacks regularCount/premiumCount, we'll omit the conditional rows
+                        // or show a placeholder if we cannot change the PreviewBooking structure.
+                        // For accurate UI representation, the next two blocks are commented out:
+                        /*
+                        if (booking.regularCount > 0) {
+                            CardTicketDetailRow(label = "- Regular:", value = "${booking.regularCount}")
+                        }
+                        if (booking.premiumCount > 0) {
+                            CardTicketDetailRow(label = "- Premium:", value = "${booking.premiumCount}")
+                        }
+                        */
+                    }
+
+                    // Total Price Box
+                    Surface(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                "Paid:",
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                fontSize = 10.sp
+                            )
+                            Text(
+                                "EGP ${booking.totalPrice}.00",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.surface
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardDetailRow(icon: ImageVector, label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
+        Text(value, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun CardTicketDetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.padding(start = 18.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+        Text(value, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+
 @Composable
 private fun TicketsHeader(ticketCount: Int) {
     Surface(
@@ -136,105 +277,20 @@ private fun TicketsHeader(ticketCount: Int) {
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
             }
-            Text(
-                text = "🎫",
-                fontSize = 40.sp,
-                textAlign = TextAlign.End
+            Icon( // Replaced emoji
+                Icons.Default.ConfirmationNumber,
+                contentDescription = "Ticket Icon",
+                modifier = Modifier.size(40.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
 }
 
-@Composable
-private fun TicketCard(booking: PreviewBooking) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Teams
-            Text(
-                text = "${booking.homeTeam} vs ${booking.awayTeam}",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+// ==================== Previews (Use DetailedTicketCard) ====================
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Stadium
-            Text(
-                text = booking.stadiumName,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Date
-            Text(
-                text = booking.matchDate,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Bottom info
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "${booking.seatCount} Tickets",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "EGP ${booking.totalPrice}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (booking.paymentStatus == "PAID")
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                    else
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
-                ) {
-                    Text(
-                        text = booking.paymentStatus,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (booking.paymentStatus == "PAID")
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ==================== Previews ====================
+// Previews remain the same, they now call MyTicketsContent which calls DetailedTicketCard
+// ... (Previews are identical to the original structure, calling MyTicketsContent)
 
 @Preview(name = "My Tickets - Empty State", showBackground = true)
 @Composable

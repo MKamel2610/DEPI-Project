@@ -7,8 +7,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// ==================== Preview-Friendly Composable ====================
 
 @Composable
 fun AuthScreenContent(
@@ -60,11 +58,11 @@ fun AuthScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // App branding
-            Text(
-                text = "⚽",
-                fontSize = 72.sp,
-                modifier = Modifier.padding(bottom = 12.dp)
+            Icon(
+                Icons.Default.ConfirmationNumber,
+                contentDescription = "Ticket Icon",
+                modifier = Modifier.size(72.dp).padding(bottom = 12.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
 
             Text(
@@ -133,9 +131,10 @@ fun AuthScreenContent(
                 },
                 trailingIcon = {
                     IconButton(onClick = onPasswordVisibilityToggle) {
-                        Text(
-                            text = if (passwordVisible) "👁" else "👁‍🗨",
-                            fontSize = 20.sp
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, // Replaced emoji text
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -174,6 +173,15 @@ fun AuthScreenContent(
                             contentDescription = "Confirm Password",
                             tint = MaterialTheme.colorScheme.primary
                         )
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = onPasswordVisibilityToggle) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, // Replaced emoji text
+                                contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     singleLine = true,

@@ -1,4 +1,4 @@
-package com.example.ticketway.ui.components
+package com.example.ticketway.ui.components.homescreen
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -186,7 +186,7 @@ fun BookingMatchCard(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    val soldOutColor = if (isDarkTheme) DarkSoldOut else Color.White
+                    val soldOutColor = if (isDarkTheme) DarkSoldOut else Color.Black
 
                     Text(
                         text = if (isAvailable) "Book" else "Sold\nOut",
